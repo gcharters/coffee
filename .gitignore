@@ -7,3 +7,11 @@ release.properties
 
 *.iml
 .idea/
+
+/.apt_generated/
+.vscode
+.classpath
+.DS_Store
+.settings
+.project
+.factorypath
