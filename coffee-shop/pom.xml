@@ -21,6 +21,8 @@
         <testServerHttpPort>9080</testServerHttpPort>
         <testServerHttpsPort>9443</testServerHttpsPort>
 
+        <baristaHttpPort>9081</baristaHttpPort>
+
         <packaging.type>minify,runnable</packaging.type>
         <failOnMissingWebXml>false</failOnMissingWebXml>
     </properties>
@@ -62,7 +64,13 @@
             <artifactId>mpOpenAPI-1.0</artifactId>
             <type>esa</type>
             <scope>provided</scope>
-        </dependency>                
+        </dependency>
+        <dependency>
+            <groupId>io.openliberty.features</groupId>
+            <artifactId>mpHealth-1.0</artifactId>
+            <type>esa</type>
+            <scope>provided</scope>
+        </dependency>                        
     </dependencies>
 
     <build>
@@ -101,6 +109,7 @@
                         <war.name>${artifactId}.war</war.name>
                         <default.http.port>${testServerHttpPort}</default.http.port>
                         <default.https.port>${testServerHttpsPort}</default.https.port>
+                        <default.barista.http.port>${baristaHttpPort}</default.barista.http.port>
                     </bootstrapProperties>
                 </configuration>
             </plugin>

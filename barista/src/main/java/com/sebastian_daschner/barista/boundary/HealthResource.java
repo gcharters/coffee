@@ -1,14 +1,27 @@
 package com.sebastian_daschner.barista.boundary;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
+import javax.enterprise.context.ApplicationScoped;
+import org.eclipse.microprofile.health.Health;
+import org.eclipse.microprofile.health.HealthCheck;
+import org.eclipse.microprofile.health.HealthCheckResponse;
 
-@Path("/health")
-public class HealthResource {
+@Health
+@ApplicationScoped
+public class HealthResource implements HealthCheck {
+	
+  public boolean isHealthy() {
+      return true;
+  }
 
-    @GET
-    public String health() {
-        return "OK";
+  @Override
+  public HealthCheckResponse call() {
+    if (!isHealthy()) {
+      return HealthCheckResponse.named(this.getClass().getSimpleName())
+                                .down()
+                                .build();
     }
+    return HealthCheckResponse.named(this.getClass().getSimpleName())
+                              .up().build();
+  }
 
 }
