@@ -5,6 +5,7 @@ import com.sebastian_daschner.coffee_shop.entity.CoffeeType;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.ws.rs.client.Client;
@@ -13,18 +14,24 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+
 @ApplicationScoped
 public class Barista {
 
     private Client client;
     private WebTarget target;
+    
+    @Inject
+    @ConfigProperty(name="default.barista.http.port")
+    String baristaHttpPort;
 
     @PostConstruct
     private void initClient() {
         client = ClientBuilder.newClient();
         String url = "http://localhost:" +
-                Integer.parseInt(System.getProperty("default.barista.http.port")) +
-                "/barista/resources/brews";
+                     Integer.parseInt(baristaHttpPort) +
+                     "/barista/resources/brews";
         target = client.target(url);
     }
 
