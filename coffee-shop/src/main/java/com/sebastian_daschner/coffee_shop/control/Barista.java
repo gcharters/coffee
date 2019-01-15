@@ -22,7 +22,10 @@ public class Barista {
     @PostConstruct
     private void initClient() {
         client = ClientBuilder.newClient();
-        target = client.target("http://localhost:9081/barista/resources/brews");
+        String url = "http://localhost:" +
+                Integer.parseInt(System.getProperty("default.barista.http.port")) +
+                "/barista/resources/brews";
+        target = client.target(url);
     }
 
     public void startCoffeeBrew(CoffeeType type) {
