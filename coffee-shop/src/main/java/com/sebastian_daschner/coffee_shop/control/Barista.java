@@ -1,10 +1,15 @@
 package com.sebastian_daschner.coffee_shop.control;
 
+import com.sebastian_daschner.coffee_shop.entity.CoffeeBrew;
 import com.sebastian_daschner.coffee_shop.entity.CoffeeType;
+
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -15,12 +20,13 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.rest.client.RestClientBuilder;
+import org.eclipse.microprofile.rest.client.RestClientDefinitionException;
 
 @ApplicationScoped
 public class Barista {
 
-    private Client client;
-    private WebTarget target;
+    URL url;
     
     @Inject
     @ConfigProperty(name="default.barista.http.port")
@@ -28,41 +34,27 @@ public class Barista {
 
     @PostConstruct
     private void initClient() {
-        client = ClientBuilder.newClient();
-        String url = "http://localhost:" +
-                     Integer.parseInt(baristaHttpPort) +
-                     "/barista/resources/brews";
-        target = client.target(url);
-    }
-
-    public void startCoffeeBrew(CoffeeType type) {
-        JsonObject requestBody = createRequestBody(type);
-        Response response = sendRequest(requestBody);
-        validateResponse(response);
-    }
-
-    private JsonObject createRequestBody(CoffeeType type) {
-        return Json.createObjectBuilder()
-                .add("type", type.name().toLowerCase())
-                .build();
-    }
-
-    private Response sendRequest(JsonObject requestBody) {
         try {
-            return target.request().post(Entity.json(requestBody));
-        } catch (Exception e) {
-            throw new IllegalStateException("Could not start coffee brew, reason: " + e.getMessage(), e);
+            url = new URL("http://localhost:" +
+                    Integer.parseInt(baristaHttpPort) +
+                    "/barista");
+        } catch (NumberFormatException | MalformedURLException e) {
+            e.printStackTrace();
         }
+
     }
 
-    private void validateResponse(Response response) {
-        if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL)
-            throw new IllegalStateException("Could not start coffee brew, status: " + response.getStatus());
+    public void startCoffeeBrew(CoffeeBrew brew) {
+        try {
+            BaristaClient baristaClient = RestClientBuilder.newBuilder()
+                    .baseUrl(url)
+                    .build(BaristaClient.class);
+            Response response = baristaClient.startCoffeeBrew(brew);
+            System.out.println("BaristaClient response: " + response.getStatus());
+        } catch (IllegalStateException | RestClientDefinitionException e) {
+            e.printStackTrace();
+        }       
     }
 
-    @PreDestroy
-    private void closeClient() {
-        client.close();
-    }
 
 }

@@ -1,4 +1,4 @@
-package com.sebastian_daschner.coffee_shop.entity;
+package com.sebastian_daschner.barista.entity;
 
 import java.util.stream.Stream;
 
@@ -13,7 +13,5 @@ public enum CoffeeType {
                 .filter(t -> t.name().equalsIgnoreCase(string))
                 .findAny().orElse(null);
     }
-    
-    public String toString( ) { return this.name();}
 
 }

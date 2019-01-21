@@ -2,6 +2,7 @@ package com.sebastian_daschner.coffee_shop.boundary;
 
 import com.sebastian_daschner.coffee_shop.control.Barista;
 import com.sebastian_daschner.coffee_shop.control.Orders;
+import com.sebastian_daschner.coffee_shop.entity.CoffeeBrew;
 import com.sebastian_daschner.coffee_shop.entity.CoffeeOrder;
 
 import javax.ejb.Stateless;
@@ -28,7 +29,10 @@ public class CoffeeShop {
 
     public CoffeeOrder orderCoffee(CoffeeOrder order) {
 
-        barista.startCoffeeBrew(order.getType());
+        CoffeeBrew brew = new CoffeeBrew();
+        brew.setType(order.getType());
+        
+        barista.startCoffeeBrew(brew);
 
         order.setId(UUID.randomUUID());
         orders.store(order.getId(), order);

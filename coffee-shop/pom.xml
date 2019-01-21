@@ -48,6 +48,18 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>javax.json</groupId>
+            <artifactId>javax.json-api</artifactId>
+            <version>1.1.4</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.openliberty.features</groupId>
+            <artifactId>jsonp-1.1</artifactId>
+            <type>esa</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>io.openliberty.features</groupId>
             <artifactId>ejbLite-3.2</artifactId>
             <type>esa</type>
@@ -77,10 +89,16 @@
             <type>esa</type>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>io.openliberty.features</groupId>
+            <artifactId>mpRestClient-1.1</artifactId>
+            <type>esa</type>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
-        <finalName>barista</finalName>
+        <finalName>coffee-shop</finalName>
 
         <plugins>
             <plugin>

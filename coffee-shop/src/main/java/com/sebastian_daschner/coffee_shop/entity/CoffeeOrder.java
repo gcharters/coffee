@@ -13,7 +13,7 @@ public class CoffeeOrder {
     private UUID id;
 
     @NotNull
-    @JsonbTypeAdapter(CoffeeTypeDeserializer.class)
+    //@JsonbTypeAdapter(CoffeeTypeDeserializer.class)
     private CoffeeType type;
 
     private OrderStatus status = OrderStatus.PREPARING;
