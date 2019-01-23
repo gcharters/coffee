@@ -45,16 +45,18 @@ public class Barista {
     }
 
     public void startCoffeeBrew(CoffeeBrew brew) {
-        try {
-            BaristaClient baristaClient = RestClientBuilder.newBuilder()
+        // TODO: remove thread when this is fixed - https://github.com/OpenLiberty/open-liberty/issues/6273
+        new Thread(() -> {
+            try {
+                BaristaClient baristaClient = RestClientBuilder.newBuilder()
                     .baseUrl(url)
                     .build(BaristaClient.class);
-            Response response = baristaClient.startCoffeeBrew(brew);
-            System.out.println("BaristaClient response: " + response.getStatus());
-        } catch (IllegalStateException | RestClientDefinitionException e) {
-            e.printStackTrace();
-        }       
+                Response response = baristaClient.startCoffeeBrew(brew);
+                System.out.println("BaristaClient response: " + response.getStatus());
+            } catch (IllegalStateException | RestClientDefinitionException e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
-
 
 }

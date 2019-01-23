@@ -1,5 +1,14 @@
-FROM sdaschner/open-liberty:javaee8-tracing-jdk8-b3
+FROM open-liberty:microProfile2-java8-ibmsfj as server-setup
+ADD /target/coffee-shop.tar.gz /config/
+RUN rm -rf /config/wlp/usr/*
+#COPY /target/coffee-shop.zip /config/
+#RUN apt-get update \
+#    && apt-get install -y --no-install-recommends unzip
+#RUN unzip /config/coffee-shop.tar.gz && \
+#    mv /wlp/usr/servers/coffee-shopServer/* /config/ && \
+#    rm -rf /config/wlp && \
+#    rm -rf /config/coffee-shop.zip
 
-COPY openliberty/server.xml $CONFIG_DIR
-
-COPY target/coffee-shop.war $DEPLOYMENT_DIR
+#FROM open-liberty
+#COPY --from=server-setup /config/ /config/
+EXPOSE 9080 9443

@@ -23,6 +23,7 @@
 
         <packaging.type>minify,runnable</packaging.type>
         <failOnMissingWebXml>false</failOnMissingWebXml>
+        <liberty.version>[18.0.0.3,)</liberty.version>
     </properties>
 
     <dependencyManagement>
@@ -85,7 +86,7 @@
                     <assemblyArtifact>
                         <groupId>io.openliberty</groupId>
                         <artifactId>openliberty-kernel</artifactId>
-                        <version>[18.0.0.3,)</version>
+                        <version>${liberty.version}</version>
                         <type>zip</type>
                     </assemblyArtifact>
                     <serverName>${project.artifactId}Server</serverName>

@@ -40,7 +40,7 @@ public class BrewsResource {
 
         coffeeBrews.startBrew(coffeeType);
 
-        return Response.accepted().build();
+        return Response.ok().build();
     }
 
 }
