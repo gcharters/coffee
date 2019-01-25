@@ -65,7 +65,7 @@ Under `Example Value` specify:
 
 Click on `Execute`
 
-Scroll down and you should see the server response code of `202`.  This says that the barista `Accepted` the request to make an `ESPRESSO`.
+Scroll down and you should see the server response code of `201`.  This says that the barista request to make an `ESPRESSO` was successfully `Created`.
 
 
 ## Feature-based Build
@@ -186,11 +186,26 @@ You should see that during the build, the following features are installed, and 
 [INFO] Installing features: [mpconfig-1.3, ejbLite-3.2, beanValidation-2.0, cdi-2.0, mpHealth-1.0, mprestclient-1.1, jsonp-1.1, ejblite-3.2, mpConfig-1.3, jaxrs-2.1, mpRestClient-1.1, mpMetrics-1.1, mpopenapi-1.0, mpOpenAPI-1.0, beanvalidation-2.0, mphealth-1.0]
 
 ```
+Now we have the API available, we can update the application to include a metric which will count the number of times a coffee order is requested. In the file `coffee/coffee-shop/src/main/java/com/sebastian_daschner/coffee_shop/boundary/OrdersResource.java`, add the following `@Counted` annotation to the `orderCoffee` method:
+
+```Java
+    @POST
+    @Counted(name="order", displayName="Order count", description="Number of times orders requested.", monotonic=true)
+    public Response orderCoffee(@Valid @NotNull CoffeeOrder order) {
+        ...
+    }
+```
+Rebuild the project:
+
+```
+mvn install
+```
+
 
 
 ## Server Configuration
 
-In the previous module you added the `mpMetrics-1.1` feature to the Liberty build.  This makes the feature available for use in the runtime, but actually loading the feature at runtime is a separate explicit choice.
+In the previous module you added the `mpMetrics-1.1` feature to the Liberty build.  This makes the feature available for use by the Liberty runtime, but actually loading the feature at runtime is a separate explicit choice.
 
 Open the file `coffee/coffee-shop/src/main/liberty/config/server.xml`
 
@@ -212,21 +227,12 @@ Near the top of the file, you'll see the following `<featureManager/>` entry:
     </featureManager>
 ```
 
-This entry lists all the features to be started by the server.  Add the following inside the `<featureManager/>` element to include the `mpMetrics-1.1` feature:
+This entry lists all the features to be loaded by the server.  Add the following inside the `<featureManager/>` element to include the `mpMetrics-1.1` feature:
 
 ```XML
         <feature>mpMetrics-1.1</feature>
 ```
 
-Next we'll update the code to include a metric which will count the number of times a coffee order is requested. In the file `coffee/coffee-shop/src/main/java/com/sebastian_daschner/coffee_shop/boundary/OrdersResource.java`, add the following `@Counted` annotation to the `orderCoffee` method:
-
-```Java
-    @POST
-    @Counted(name="order", displayName="Order count", description="Number of times orders requested.", monotonic=true)
-    public Response orderCoffee(@Valid @NotNull CoffeeOrder order) {
-        ...
-    }
-```
 
 In the `coffee/coffee-shop` directory, build the updated application and start the server:
 
@@ -234,7 +240,7 @@ In the `coffee/coffee-shop` directory, build the updated application and start t
 mvn install liberty:run
 ```
 
-You should now see a new metrics endpoint that looks like:
+You should now see a message for a new metrics endpoint that looks like:
 
 ```
 [INFO] [AUDIT   ] CWWKT0016I: Web application available (default_host): http://localhost:9080/metrics/
@@ -255,7 +261,7 @@ If you take a look at the server output, you should see the following error:
 
 It's one thing to configure the server to load a feature, but many Liberty features require additional configuration.  The complete set of Liberty features and their configuration can be found here: https://openliberty.io/docs/ref/config/.
 
-The error message suggests we need to add a `keyStore` and one route to solve this would be to add a `keyStore` and user registry (e.g. a `basicRegistry` for test purposes).  However, if we take a look at the configuration for mpMetrics (https://openliberty.io/docs/ref/config/#mpMetrics.html) we can see that it has an option to turn the metrics endpoint security off.
+The error message suggests we need to add a `keyStore` and one route to solve this would be to add a `keyStore` and user registry (e.g. a `basicRegistry` for test purposes).  However, if we take a look at the configuration for mpMetrics (https://openliberty.io/docs/ref/config/#mpMetrics.html) we can see that it has an option to turn the metrics endpoint authentication off.
 
 Add the following to the `coffee/coffee-shop/src/main/liberty/config/server.xml`
 
@@ -458,11 +464,55 @@ If you need to remove a container, use:
 ```
 docker container rm <container name>
 ```
+The above works fine, but still has a metrics endpoint with authentication turned off.  We'll now show how `configDropins/overrides` can be used to override existing, or add new, server configuration.  For example, this can be used to add server configuration in a production environment.  The approach we're going to take is to use a Docker volume, but in a real-world scenario you would use Kubernetes ConfigMaps to include the production server configuration.  An alternative approach which makes the Docker container more immutable is to build a new image that adds the production configuration.  Which ever approach is taken, separating the dev, staging and prod configuration into separate `server.xml` files is the best practice.
 
+Take a look at the file `coffee/coffee-shop/configDropins/overrides/metrics-prod.xml`:
 
+```XML
+<?xml version="1.0" encoding="UTF-8"?>
+<server description="Coffee Shop Server">
 
+    <featureManager>
+        <feature>mpMetrics-1.1</feature>
+    </featureManager>
+    
+    <mpMetrics authentication="true" />
 
+     <!-- 
+     Note, this configuration is for demo purposes
+     only and MUST NOT BE USED IN PRODUCTION AS IT 
+     IS INSECURE. -->  
+    <variable name="admin.password" value="change_it" />
+    <variable name="keystore.password" value="change_it" />
+    
+    <quickStartSecurity userName="admin" userPassword="${admin.password}"/>
+    <keyStore id="defaultKeyStore" password="${keystore.password}"/>    
+     
+</server>
+```
+You'll see that this turns metrics authentication on and sets up some simple security required for the securing/accessing the metrics endpoint.  Note, this configuration really is NOT FOR PRODUCTION, it's simply aiming to show how to override server configuration.
 
+If you're on a unix-based OS, in the `coffee/coffee-shop`directory, run the `coffee-shop` container:
+
+```
+docker run -p 9080:9080 -p 9445:9443 --network=masterclass-net --name=coffee-shop -e default_barista_base_url='http://barista:9081' -e default_http_port=9080 -e default_https_port=9443 -v $(pwd)/configDropins/overrides:/opt/ol/wlp/usr/servers/defaultServer/configDropins/overrides  masterclass:coffee-shop
+```
+The above relies on `pwd` to fill out the docker volume source path.  If you're on Windows, replace `$(pwd)` with the absolute path to the `coffee/coffee-shop` directory in the above command.
+
+You should see the following message as the server is starting:
+
+```
+[AUDIT   ] CWWKG0102I: Found conflicting settings for mpMetrics configuration.
+  Property authentication has conflicting values:
+    Value false is set in file:/opt/ol/wlp/usr/servers/defaultServer/server.xml.
+    Value true is set in file:/opt/ol/wlp/usr/servers/defaultServer/configDropins/overrides/metrics-prod.xml.
+  Property authentication will be set to true.
+```
+This shows that we have turned metrics authentication back on.
+
+Access the metrics endpoint at: `https://localhost:9445/metrics`
+
+You will see that the browser complains about the certificate.  This is a self-signed certificate generated by Liberty for test purposes.  Accept the exception (note,  Firefox may not allow you to do this in which case you'll need to use a different browser).  You'll be presented with a login prompt.  Sign in with userid `admin` and password `change_it` (the values from the `metrics-prod.xml`).
 
 
 
