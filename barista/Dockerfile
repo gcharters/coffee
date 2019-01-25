@@ -1,5 +1,4 @@
-FROM sdaschner/open-liberty:javaee8-tracing-jdk8-b3
-
-COPY openliberty/server.xml $CONFIG_DIR
-
-COPY target/barista.war $DEPLOYMENT_DIR
+FROM open-liberty:kernel-java8-ibm
+ADD /target/barista.tar.gz /opt/ol
+RUN rm /opt/ol/wlp/usr/servers/defaultServer/bootstrap.properties
+EXPOSE 9081 9444

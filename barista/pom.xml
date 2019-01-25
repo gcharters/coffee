@@ -21,7 +21,8 @@
         <testServerHttpPort>9081</testServerHttpPort>
         <testServerHttpsPort>9444</testServerHttpsPort>
 
-        <packaging.type>minify,runnable</packaging.type>
+        <packaging.type>usr</packaging.type>
+        <package.file>barista.tar.gz</package.file>
         <failOnMissingWebXml>false</failOnMissingWebXml>
         <liberty.version>[18.0.0.3,)</liberty.version>
     </properties>
@@ -89,14 +90,15 @@
                         <version>${liberty.version}</version>
                         <type>zip</type>
                     </assemblyArtifact>
-                    <serverName>${project.artifactId}Server</serverName>
                     <configFile>src/main/liberty/config/server.xml</configFile>
                     <include>${packaging.type}</include>
+                    <packageFile>${project.build.directory}/${package.file}</packageFile>                    
                     <bootstrapProperties>
                         <war.name>${artifactId}.war</war.name>
                         <default.http.port>${testServerHttpPort}</default.http.port>
                         <default.https.port>${testServerHttpsPort}</default.https.port>
                     </bootstrapProperties>
+                    <looseApplication>false</looseApplication>
                 </configuration>
             </plugin>
         </plugins>

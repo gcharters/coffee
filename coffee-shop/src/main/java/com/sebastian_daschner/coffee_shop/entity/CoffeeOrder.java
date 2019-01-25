@@ -1,9 +1,6 @@
 package com.sebastian_daschner.coffee_shop.entity;
 
-import com.sebastian_daschner.coffee_shop.CoffeeTypeDeserializer;
-
 import javax.json.bind.annotation.JsonbTransient;
-import javax.json.bind.annotation.JsonbTypeAdapter;
 import javax.validation.constraints.NotNull;
 import java.util.UUID;
 
@@ -13,7 +10,6 @@ public class CoffeeOrder {
     private UUID id;
 
     @NotNull
-    //@JsonbTypeAdapter(CoffeeTypeDeserializer.class)
     private CoffeeType type;
 
     private OrderStatus status = OrderStatus.PREPARING;

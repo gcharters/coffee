@@ -20,11 +20,11 @@
 
         <testServerHttpPort>9080</testServerHttpPort>
         <testServerHttpsPort>9443</testServerHttpsPort>
-
-        <baristaHttpPort>9081</baristaHttpPort>
+        <baristaBaseURL>http://localhost:9081</baristaBaseURL>
 
         <packaging.type>usr</packaging.type>
         <package.file>coffee-shop.tar.gz</package.file>
+        
         <failOnMissingWebXml>false</failOnMissingWebXml>
     </properties>
 
@@ -133,16 +133,16 @@
                         <version>[18.0.0.3,)</version>
                         <type>zip</type>
                     </assemblyArtifact>
-                    <serverName>${project.artifactId}Server</serverName>
                     <configFile>src/main/liberty/config/server.xml</configFile>
                     <include>${packaging.type}</include>
                     <packageFile>${project.build.directory}/${package.file}</packageFile>
                     <bootstrapProperties>
                         <war.name>${artifactId}.war</war.name>
-                        <default.http.port>${testServerHttpPort}</default.http.port>
-                        <default.https.port>${testServerHttpsPort}</default.https.port>
-                        <default.barista.http.port>${baristaHttpPort}</default.barista.http.port>
+                        <env.default_http_port>${testServerHttpPort}</env.default_http_port>
+                        <env.default_https_port>${testServerHttpsPort}</env.default_https_port>
+                        <default_barista_base_url>${baristaBaseURL}</default_barista_base_url>
                     </bootstrapProperties>
+                    <looseApplication>false</looseApplication>
                 </configuration>
             </plugin>
         </plugins>

@@ -17,14 +17,13 @@ import org.eclipse.microprofile.health.HealthCheckResponse;
 public class HealthResource implements HealthCheck {
 
     @Inject
-    @ConfigProperty(name = "default.barista.http.port")
-    String baristaHttpPort;
+    @ConfigProperty(name="default_barista_base_url")
+    String baristaBaseURL;
 
     public boolean isHealthy() {
         System.out.println(System.getProperties());
         try {
-            String url = "http://localhost:" + Integer.parseInt(baristaHttpPort)
-                    + "/health";
+            String url = baristaBaseURL + "/health";
             Client client = ClientBuilder.newClient();
             Response response = client.target(url).request(MediaType.APPLICATION_JSON).get();
             if (response.getStatus() != 200) {

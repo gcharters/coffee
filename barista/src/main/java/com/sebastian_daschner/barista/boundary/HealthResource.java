@@ -10,6 +10,7 @@ import org.eclipse.microprofile.health.HealthCheckResponse;
 public class HealthResource implements HealthCheck {
 	
   public boolean isHealthy() {
+      // Nothing to check in this implementation
       return true;
   }
 
