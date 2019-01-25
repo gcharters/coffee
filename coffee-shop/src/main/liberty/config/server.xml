@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<server description="OpenLiberty Server">
+<server description="Coffee Shop Server">
 
     <featureManager>
         <feature>jaxrs-2.1</feature>
