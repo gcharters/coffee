@@ -27,7 +27,7 @@ mvn package
 docker build -t masterclass:coffee-shop .
 ```
 
-## Build
+## Module 1: Build
 
 Liberty has support for building and deploying applications using Maven and Gradle.  The source and documentation for these plugins can be found here:
 * https://github.com/wasdev/ci.maven
@@ -68,7 +68,7 @@ Click on `Execute`
 Scroll down and you should see the server response code of `201`.  This says that the barista request to make an `ESPRESSO` was successfully `Created`.
 
 
-## Feature-based Build
+## Module 2: Feature-based Build
 
 The `liberty-maven-plugin` lets you specify which Liberty features you want to build against.
 
@@ -133,7 +133,7 @@ For a full list of all the features available, see https://openliberty.io/docs/r
 
 **TODO: Not clear what the purpose is.  As it stands, they can build but won't see anything different happen.  Should we make change this to add Open API?  But then we'll need to talk about server configuration to add the feature to the server.**
 
-## Application APIs
+## Module 3: Application APIs
 
 Open Liberty has support for many standard APIs out of the box, including all the latest Java EE 8 APIs and the latest MicroProfile APIs.  To lead in the delivery of new APIs, a new version of Liberty is released every 4 weeks and aims to provide MicroProfile implementations soon after they are finalized.
 
@@ -201,9 +201,7 @@ Rebuild the project:
 mvn install
 ```
 
-
-
-## Server Configuration
+## Module 4: Server Configuration
 
 In the previous module you added the `mpMetrics-1.1` feature to the Liberty build.  This makes the feature available for use by the Liberty runtime, but actually loading the feature at runtime is a separate explicit choice.
 
@@ -286,7 +284,7 @@ This doesn't contain the metrics you added because the service hasn't been calle
 application:com_sebastian_daschner_coffee_shop_boundary_orders_resource_order 3
 ```
 
-## Externalizing Configuration
+## Module 5: Externalizing Configuration
 
 If you're familiar with the concept of 12-factor applications (see http://12factor.net) you'll know that factor III states that an applications configuration should be stored in the environment.  Config here is referring to things which vary between development, staging and production. In doing so you can build the deployment artefact once and deploy it in the different environments unchanged.
 
@@ -385,7 +383,7 @@ EXPOSE 9080 9443
 ```
 The `FROM` statement is building this image using the Open Liberty kernel image (see https://hub.docker.com/_/open-liberty/ for the available images).  The `ADD` statement unzips our packaged application and server configuration, the `RUN` removes the `bootstrap.properties` file to avoid accidentally using it, and the `EXPOSE` makes the two server ports available outsides the container.
 
-Let's build the docker images.  In the `coffee/coffee-shop` directory, run:
+Let's build the docker image.  In the `coffee/coffee-shop` directory, run:
 
 ```
 docker build -t masterclass:coffee-shop .
@@ -409,7 +407,7 @@ Run the `barista` container:
 docker run --network=masterclass-net --name=barista masterclass:barista
 ```
 
-Run the `coffee-shop` container:
+Next, we're going to run the `coffee-shop` container.  For it to work we'll need to provide new values for ports and the location of the barista service.  Run the `coffee-shop` container
 
 ```
 docker run -p 9080:9080 -p 9445:9443 --network=masterclass-net --name=coffee-shop -e default_barista_base_url='http://barista:9081' -e default_http_port=9080 -e default_https_port=9443 masterclass:coffee-shop
@@ -464,7 +462,9 @@ If you need to remove a container, use:
 ```
 docker container rm <container name>
 ```
-The above works fine, but still has a metrics endpoint with authentication turned off.  We'll now show how `configDropins/overrides` can be used to override existing, or add new, server configuration.  For example, this can be used to add server configuration in a production environment.  The approach we're going to take is to use a Docker volume, but in a real-world scenario you would use Kubernetes ConfigMaps to include the production server configuration.  An alternative approach which makes the Docker container more immutable is to build a new image that adds the production configuration.  Which ever approach is taken, separating the dev, staging and prod configuration into separate `server.xml` files is the best practice.
+### Overriding Dev Server Configuration
+
+The above works fine, but still has a metrics endpoint with authentication turned off.  We'll now show how `configDropins/overrides` can be used to override existing, or add new, server configuration.  For example, this can be used to add server configuration in a production environment.  The approach we're going to take is to use a Docker volume, but in a real-world scenario you would use Kubernetes ConfigMaps to include the production server configuration, or build a new image based on the dev image that adds the production configuration.  Whichever approach is taken, separating the dev, staging and prod configuration into separate `server.xml` files is the best practice.
 
 Take a look at the file `coffee/coffee-shop/configDropins/overrides/metrics-prod.xml`:
 
@@ -490,14 +490,14 @@ Take a look at the file `coffee/coffee-shop/configDropins/overrides/metrics-prod
      
 </server>
 ```
-You'll see that this turns metrics authentication on and sets up some simple security required for the securing/accessing the metrics endpoint.  Note, this configuration really is NOT FOR PRODUCTION, it's simply aiming to show how to override server configuration.
+You'll see that this turns metrics authentication on and sets up some simple security required for securing/accessing the metrics endpoint.  Note, this configuration really is NOT FOR PRODUCTION, it's simply aiming to show how to override, or provide new, server configuration.
 
 If you're on a unix-based OS, in the `coffee/coffee-shop`directory, run the `coffee-shop` container:
 
 ```
 docker run -p 9080:9080 -p 9445:9443 --network=masterclass-net --name=coffee-shop -e default_barista_base_url='http://barista:9081' -e default_http_port=9080 -e default_https_port=9443 -v $(pwd)/configDropins/overrides:/opt/ol/wlp/usr/servers/defaultServer/configDropins/overrides  masterclass:coffee-shop
 ```
-The above relies on `pwd` to fill out the docker volume source path.  If you're on Windows, replace `$(pwd)` with the absolute path to the `coffee/coffee-shop` directory in the above command.
+The above relies on `pwd` to fill in the docker volume source path.  If you're on Windows, replace `$(pwd)` with the absolute path to the `coffee/coffee-shop` directory in the above command.
 
 You should see the following message as the server is starting:
 
@@ -512,9 +512,10 @@ This shows that we have turned metrics authentication back on.
 
 Access the metrics endpoint at: `https://localhost:9445/metrics`
 
-You will see that the browser complains about the certificate.  This is a self-signed certificate generated by Liberty for test purposes.  Accept the exception (note,  Firefox may not allow you to do this in which case you'll need to use a different browser).  You'll be presented with a login prompt.  Sign in with userid `admin` and password `change_it` (the values from the `metrics-prod.xml`).
+You will see that the browser complains about the certificate.  This is a self-signed certificate generated by Liberty for test purposes.  Accept the exception (note,  Firefox may not allow you to do this in which case you'll need to use a different browser).  You'll be presented with a login prompt.  Sign in with userid `admin` and password `change_it` (the values in the `metrics-prod.xml`).
 
 
+## Module 6: Support Licensing
 
-## Support Licensing
+TODO: Alasdair to add some words
 
