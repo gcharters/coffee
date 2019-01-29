@@ -12,8 +12,5 @@ public class CoffeeBrew {
     
     public void setType(CoffeeType type) {
         this.type = type;
-    }
-
-
-    
+    }    
 }

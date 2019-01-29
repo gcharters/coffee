@@ -369,6 +369,10 @@ For more information on MicroProfile Config see https://openliberty.io/guides/mi
 
 Rebuild the code, start the server and try out the endpoint through the Open API UI.
 
+## Testing
+
+
+
 ## Docker
 
 We're now going to dockerize the two services and show how we can override the defaults to re-wire the two services.  We're going to use a Docker user-defined network (see https://docs.docker.com/network/network-tutorial-standalone/#use-user-defined-bridge-networks) because we'll be running them on the same host and it keeps things simple.  For real-world production deployments you would use a Kubernetes environment, such as IBM Cloud Private or the IBM Cloud Kubernetes Service.
@@ -464,7 +468,7 @@ docker container rm <container name>
 ```
 ### Overriding Dev Server Configuration
 
-The above works fine, but still has a metrics endpoint with authentication turned off.  We'll now show how `configDropins/overrides` can be used to override existing, or add new, server configuration.  For example, this can be used to add server configuration in a production environment.  The approach we're going to take is to use a Docker volume, but in a real-world scenario you would use Kubernetes ConfigMaps to include the production server configuration, or build a new image based on the dev image that adds the production configuration.  Whichever approach is taken, separating the dev, staging and prod configuration into separate `server.xml` files is the best practice.
+The above works fine, but still has a metrics endpoint with authentication turned off.  We'll now show how `configDropins/overrides` can be used to override existing, or add new, server configuration.  For example, this can be used to add server configuration in a production environment.  The approach we're going to take is to use a Docker volume, but in a real-world scenario you would use Kubernetes ConfigMaps to include the production server configuration, or build a new image based on the dev image that adds the production configuration.  Whichever approach is taken, separating the dev, staging and prod configuration into separate server configuration files is the best practice.
 
 Take a look at the file `coffee/coffee-shop/configDropins/overrides/metrics-prod.xml`:
 
