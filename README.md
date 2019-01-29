@@ -369,9 +369,146 @@ For more information on MicroProfile Config see https://openliberty.io/guides/mi
 
 Rebuild the code, start the server and try out the endpoint through the Open API UI.
 
-## Testing
+## Integration Testing
 
+Tests are essential for developing maintainable code.  Developing your application using bean-based component models like CDI make your code easily unit-testable. Integration Tests are a little more challenging.  In this section you'll add a `barista` service integration test using the `maven-failsafe-plugin`.  During the build, the liberty server will start with the `barista` application deployed, the test will be run and then the server will be stopped.  The starting and stopping of the Liberty server is configured by the Liberty parent pom (see https://search.maven.org/artifact/net.wasdev.wlp.maven.parent/liberty-maven-app-parent/2.6.3/pom), which is configured as the parent of the Masterclass pom.
 
+Because we're going to be testing a REST `POST` request, we need JAX-RS client support and also support for serializing `json` into the request.  We also need `junit` for writing the tests.  Add these dependencies to the `coffee/barista/pom.xml`:
+
+```XML
+        <!-- Test dependencies -->  
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-rs-mp-client</artifactId>
+            <version>3.3.0</version>
+            <scope>test</scope>
+        </dependency>     
+        <dependency>
+            <groupId>com.fasterxml.jackson.jaxrs</groupId>
+            <artifactId>jackson-jaxrs-json-provider</artifactId>
+            <version>2.9.3</version>
+            <scope>test</scope>
+        </dependency>
+```
+
+Note the `<scope/>` of the tests is set to `test` because we only want the dependencies to be used during testing.
+
+Next add `maven-failsafe-plugin` configuration at the end of the `<plugins/>` section:
+
+```XML
+        <plugins>
+            ...
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.19.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <liberty.test.port>${testServerHttpPort}</liberty.test.port>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>            
+        </plugins>
+```
+Note, this configuration makes port of the server available to the test as a system property called `liberty.test.port`.
+
+Finally, add the test code.  Create a file called, `coffee/barista/src/test/java/com/sebastian-daschner/barista/it/BaristaIT.java` and add the following:
+
+```Java
+package com.sebastian_daschner.barista.it;
+
+import static org.junit.Assert.*;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.MediaType;
+
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+
+import com.sebastian_daschner.barista.entity.CoffeeBrew;
+import com.sebastian_daschner.barista.entity.CoffeeType;
+
+public class BaristaIT {
+    private static String URL;
+
+    @BeforeClass
+    public static void init() {
+        String port = System.getProperty("liberty.test.port");
+        URL = "http://localhost:" + port + "/barista/resources/brews";
+    }
+    @Test
+    public void testService() throws Exception {
+
+        Client client = null;
+        WebTarget target = null;
+        try {
+            client = ClientBuilder.newClient().register(JacksonJsonProvider.class);
+            target = client.target(URL);
+
+        } catch (Exception e) {
+            client.close();
+            throw e;
+        }
+
+        CoffeeBrew brew = new CoffeeBrew();
+        brew.setType(CoffeeType.POUR_OVER);
+
+        Response response = target.request(MediaType.APPLICATION_JSON).post(Entity.json(brew));
+
+        try {
+            if (response == null) {
+                assertNotNull("GreetingService response must not be NULL", response);
+            } else {
+                assertEquals("Response must be 200 OK", 200, response.getStatus());
+            }
+
+        } finally {
+            response.close();
+        }
+    }
+}
+```
+
+This test sends a `json` request to the `barista` service and checks for a `200 OK` response. 
+
+Re-build and run the tests:
+
+```
+mvn install
+```
+
+In the output of the build, you should see:
+
+```
+-------------------------------------------------------
+ T E S T S
+-------------------------------------------------------
+Running com.sebastian_daschner.barista.it.BaristaIT
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.365 sec - in com.sebastian_daschner.barista.it.BaristaIT
+
+Results :
+
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
+```
 
 ## Docker
 
