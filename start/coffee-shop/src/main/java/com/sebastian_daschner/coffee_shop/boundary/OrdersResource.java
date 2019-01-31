@@ -16,7 +16,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.eclipse.microprofile.metrics.annotation.Counted;
 
 import java.net.URI;
 import java.util.UUID;
@@ -57,7 +56,6 @@ public class OrdersResource {
     }
 
     @POST
-    @Counted(name="order", displayName="Order count", description="Number of times orders requested.", monotonic=true)
     public Response orderCoffee(@Valid @NotNull CoffeeOrder order) {
         final CoffeeOrder storedOrder = coffeeShop.orderCoffee(order);
         return Response.created(buildUri(storedOrder)).build();

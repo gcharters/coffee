@@ -9,8 +9,6 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.core.Response;
 
-import javax.inject.Inject;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.RestClientBuilder;
 import org.eclipse.microprofile.rest.client.RestClientDefinitionException;
 
@@ -19,9 +17,7 @@ public class Barista {
 
     URL url;
     
-    @Inject
-    @ConfigProperty(name="default_barista_base_url")
-    String baristaBaseURL;
+    String baristaBaseURL = "http://localhost:9081";
 
     @PostConstruct
     private void initClient() {
@@ -36,6 +32,7 @@ public class Barista {
 
     public void startCoffeeBrew(CoffeeBrew brew) {
         // TODO: remove thread when this is fixed - https://github.com/OpenLiberty/open-liberty/issues/6273
+        // and add in MP Fault Tolerance
         new Thread(() -> {
             try {
                 BaristaClient baristaClient = RestClientBuilder.newBuilder()

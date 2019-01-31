@@ -74,12 +74,6 @@
         </dependency> 
         <dependency>
             <groupId>io.openliberty.features</groupId>
-            <artifactId>mpOpenAPI-1.0</artifactId>
-            <type>esa</type>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.openliberty.features</groupId>
             <artifactId>mpHealth-1.0</artifactId>
             <type>esa</type>
             <scope>provided</scope>
@@ -93,12 +87,6 @@
         <dependency>
             <groupId>io.openliberty.features</groupId>
             <artifactId>mpRestClient-1.1</artifactId>
-            <type>esa</type>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.openliberty.features</groupId>
-            <artifactId>mpMetrics-1.1</artifactId>
             <type>esa</type>
             <scope>provided</scope>
         </dependency>
@@ -138,9 +126,6 @@
                     <packageFile>${project.build.directory}/${package.file}</packageFile>
                     <bootstrapProperties>
                         <war.name>${artifactId}.war</war.name>
-                        <env.default_http_port>${testServerHttpPort}</env.default_http_port>
-                        <env.default_https_port>${testServerHttpsPort}</env.default_https_port>
-                        <default_barista_base_url>${baristaBaseURL}</default_barista_base_url>
                     </bootstrapProperties>
                     <looseApplication>false</looseApplication>
                 </configuration>

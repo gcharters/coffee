@@ -16,9 +16,7 @@ import org.eclipse.microprofile.health.HealthCheckResponse;
 @ApplicationScoped
 public class HealthResource implements HealthCheck {
 
-    @Inject
-    @ConfigProperty(name="default_barista_base_url")
-    String baristaBaseURL;
+    String baristaBaseURL = "http://localhost:9081";
 
     public boolean isHealthy() {
         System.out.println(System.getProperties());

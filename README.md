@@ -1,6 +1,6 @@
 # Open Liberty Masterclass
 
-This document contains the hands-on lab modules for the Open Liberty Masterclass.  It is intended to be used in conjunction with taught materials.
+This document contains the hands-on lab modules for the Open Liberty Masterclass.  It is intended to be used in conjunction with taught materials, however, feel free to give it a try, even if you're not in a Masterclass.
 
 ## Before you Begin
 
@@ -22,13 +22,13 @@ If you will be taking the Masterclass at a location with limited network bandwid
 
 ```
 git clone https://github.com/gcharters/coffee.git
-cd coffee/coffee-shop
+cd coffee/start/coffee-shop
 mvn package
 docker build -t masterclass:coffee-shop .
 ```
 ## The Application
 
-The application consists of two Microservices; `coffee-shop` and `barista`.  The `coffee-shop` service allows you to place an order and the `barista` service requests the making of the coffee.
+The application consists of two Microservices; `coffee-shop` and `barista`.  The `coffee-shop` service allows you to place an order and the `barista` service services the making of the coffee.
 
 ```
                 ^|
@@ -39,6 +39,8 @@ The application consists of two Microservices; `coffee-shop` and `barista`.  The
             │ coffee-shop │---------------------->│   barista   │
             └─────────────┘<----------------------└─────────────┘
 ```
+The completed code for the Masterclass is provided in the `coffee/finish` directory.  To work through the Masterclass you will develop in the `coffee/start` directory.
+
 
 ## Module 1: Build
 
@@ -48,12 +50,12 @@ Liberty has support for building and deploying applications using Maven and Grad
 
 The Masterclass will make use of the `liberty-maven-plugin`.
 
-Take a look at the maven build file for the coffee-shop project: `coffee/barista/pom.xml`
+Take a look at the maven build file for the coffee-shop project: `coffee/start/barista/pom.xml`
 
 Go to the barista project:
 
 ```
-cd coffee/barista
+cd coffee/start/barista
 ```
 
 Build and run the barista service:
@@ -85,7 +87,7 @@ Scroll down and you should see the server response code of `201`.  This says tha
 
 The `liberty-maven-plugin` lets you specify which Liberty features you want to build against.
 
-Take a look at the maven build file for the coffee-shop project: `coffee/coffee-shop/pom.xml`
+Take a look at the maven build file for the coffee-shop project: `coffee/start/coffee-shop/pom.xml`
 
 In order for the plugin to know what features are available, we need to tell it where to find the feature information.  This is done with the following `<dependencyManagement/>` section:
 
@@ -131,6 +133,31 @@ Add the following dependency to the `coffee-shop/pom.xml`
             <scope>provided</scope>
         </dependency> 
 ```
+The above dependency will cause the feature to be installed during the build, but we also need to tell the server to load it at runtime.
+
+Open the file `coffee/start/coffee-shop/src/main/liberty/config/server.xml`
+
+This file is the configuration for the `coffee-shop` server.
+
+Near the top of the file, you'll see the following `<featureManager/>` entry:
+
+```XML
+    <featureManager>
+        <feature>jaxrs-2.1</feature>
+        <feature>ejbLite-3.2</feature>
+        <feature>cdi-2.0</feature>
+        <feature>beanValidation-2.0</feature>
+        <feature>mpHealth-1.0</feature>
+        <feature>mpConfig-1.3</feature>
+        <feature>mpRestClient-1.1</feature>
+        <feature>jsonp-1.1</feature>
+    </featureManager>
+```
+This entry lists all the features to be loaded by the server.  Add the following entry inside the `<featureManager/>` element:
+
+```XML
+        <feature>mpOpenAPI-1.0</feature>
+```
 
 Build and run the coffee-shop service:
 
@@ -140,11 +167,9 @@ mvn install liberty:run
 
 Visit: http://localhost:9080/openapi/ui
 
-As with the barista services, this is an Open API UI page that lets to try out the service API for the coffee-shop service.
+As with the barista service, this is an Open API UI page that lets to try out the service API for the coffee-shop service.
 
 For a full list of all the features available, see https://openliberty.io/docs/ref/feature/.
-
-**TODO: Not clear what the purpose is.  As it stands, they can build but won't see anything different happen.  Should we make change this to add Open API?  But then we'll need to talk about server configuration to add the feature to the server.**
 
 ## Module 3: Application APIs
 
@@ -176,7 +201,7 @@ Which depends on the Metrics API from Eclipse MicroProfile:
 
 And so during build, this API will be added for you.
 
-We're now going to add Metrics to the `coffee-shop`.  Edit the `coffee/coffee-shop/pom.xml` file and add the following dependency:
+We're now going to add Metrics to the `coffee-shop`.  Edit the `coffee/start/coffee-shop/pom.xml` file and add the following dependency:
 
 ```XML
         <dependency>
@@ -196,10 +221,10 @@ mvn install
 You should see that during the build, the following features are installed, and include mpMetrics-1.1:
 
 ```
-[INFO] Installing features: [mpconfig-1.3, ejbLite-3.2, beanValidation-2.0, cdi-2.0, mpHealth-1.0, mprestclient-1.1, jsonp-1.1, ejblite-3.2, mpConfig-1.3, jaxrs-2.1, mpRestClient-1.1, mpMetrics-1.1, mpopenapi-1.0, mpOpenAPI-1.0, beanvalidation-2.0, mphealth-1.0]
+[INFO] The following features have been installed: mpConfig-1.3 jndi-1.0 ejbLite-3.2 el-3.0 beanValidation-2.0 cdi-2.0 servlet-3.1 json-1.0 cdi-1.2 mpHealth-1.0 jaxrsClient-2.0 jsonp-1.0 mpRestClient-1.1 jsonp-1.1 servlet-4.0 jaxrsClient-2.1 jaxrs-2.1 ssl-1.0 distributedMap-1.0 mpConfig-1.2 mpMetrics-1.1 jaxrs-2.0 mpOpenAPI-1.0 appSecurity-2.0 
 
 ```
-Now we have the API available, we can update the application to include a metric which will count the number of times a coffee order is requested. In the file `coffee/coffee-shop/src/main/java/com/sebastian_daschner/coffee_shop/boundary/OrdersResource.java`, add the following `@Counted` annotation to the `orderCoffee` method:
+Now we have the API available, we can update the application to include a metric which will count the number of times a coffee order is requested. In the file `coffee/start/coffee-shop/src/main/java/com/sebastian_daschner/coffee_shop/boundary/OrdersResource.java`, add the following `@Counted` annotation to the `orderCoffee` method:
 
 ```Java
     @POST
@@ -208,6 +233,13 @@ Now we have the API available, we can update the application to include a metric
         ...
     }
 ```
+
+You'll also need to add the following package import:
+```Java
+import org.eclipse.microprofile.metrics.annotation.Counted;
+```
+
+
 Rebuild the project:
 
 ```
@@ -216,11 +248,9 @@ mvn install
 
 ## Module 4: Server Configuration
 
-In the previous module you added the `mpMetrics-1.1` feature to the Liberty build.  This makes the feature available for use by the Liberty runtime, but actually loading the feature at runtime is a separate explicit choice.
+In the previous module you added the `mpMetrics-1.1` feature to the Liberty build.  This makes the feature available for use by the Liberty runtime, but as we saw with the `mpOpenAPI` feature loading the feature at runtime is a separate explicit choice.
 
-Open the file `coffee/coffee-shop/src/main/liberty/config/server.xml`
-
-This file is the configuration for the `coffee-shop` server.
+Open the file `coffee/start/coffee-shop/src/main/liberty/config/server.xml`
 
 Near the top of the file, you'll see the following `<featureManager/>` entry:
 
@@ -230,22 +260,21 @@ Near the top of the file, you'll see the following `<featureManager/>` entry:
         <feature>ejbLite-3.2</feature>
         <feature>cdi-2.0</feature>
         <feature>beanValidation-2.0</feature>
-        <feature>mpOpenAPI-1.0</feature>
         <feature>mpHealth-1.0</feature>
         <feature>mpConfig-1.3</feature>
         <feature>mpRestClient-1.1</feature>
         <feature>jsonp-1.1</feature>
+        <feature>mpOpenAPI-1.0</feature>
     </featureManager>
 ```
 
-This entry lists all the features to be loaded by the server.  Add the following inside the `<featureManager/>` element to include the `mpMetrics-1.1` feature:
+Add the following inside the `<featureManager/>` element to include the `mpMetrics-1.1` feature:
 
 ```XML
         <feature>mpMetrics-1.1</feature>
 ```
 
-
-In the `coffee/coffee-shop` directory, build the updated application and start the server:
+In the `coffee/start/coffee-shop` directory, build the updated application and start the server:
 
 ```
 mvn install liberty:run
@@ -274,7 +303,7 @@ It's one thing to configure the server to load a feature, but many Liberty featu
 
 The error message suggests we need to add a `keyStore` and one route to solve this would be to add a `keyStore` and user registry (e.g. a `basicRegistry` for test purposes).  However, if we take a look at the configuration for mpMetrics (https://openliberty.io/docs/ref/config/#mpMetrics.html) we can see that it has an option to turn the metrics endpoint authentication off.
 
-Add the following to the `coffee/coffee-shop/src/main/liberty/config/server.xml`
+Add the following to the `coffee/start/coffee-shop/src/main/liberty/config/server.xml`
 
 ```XML
     <mpMetrics authentication="false" />
@@ -288,7 +317,7 @@ Rebuild, restart the server and visit the metrics endpoint, you should see a num
 base:classloader_total_loaded_class_count 10616
 ...
 ```
-This doesn't contain the metrics you added because the service hasn't been called. Use the OpenAPI UI to send a few requests to the service reload the metrics page.  At the bottom of the metrics you should see:
+This doesn't contain the metrics you added because the service hasn't been called and so no application metrics have been recorded. Use the OpenAPI UI to send a few requests to the service and reload the metrics page.  At the bottom of the metrics you should see:
 
 ```
 ...
@@ -303,31 +332,34 @@ If you're familiar with the concept of 12-factor applications (see http://12fact
 
 Liberty lets your application pick up configuration from a number of sources, such as environment variables, bootstrap.properties and Kubernetes configuration.
 
-Bootstrap.properties lets you provide simple configuration values to substitute in the server configuration and also to use within the applications.  The following example replaces the hard-coded port the `coffee-shop` service uses to talk to the `barista`, as well as the ports it exposes.
+Bootstrap.properties lets you provide simple configuration values to substitute in the server configuration and also to use within the application.  The following example replaces the hard-coded base URL the `coffee-shop` service uses to talk to the `barista` service, as well as the ports it exposes.
 
-In the `coffee/coffee-shop/pom.xml` file, in the `<properties/>` add:
+In the `coffee/start/coffee-shop/pom.xml` file, in the `<properties/>` add:
 
 ```XML
     <properties>
         ...
         <testServerHttpPort>9080</testServerHttpPort>
         <testServerHttpsPort>9443</testServerHttpsPort>
-        <baristaHttpPort>9081</baristaHttpPort>
+        <baristaBaseURL>http://localhost:9081</baristaBaseURL>
         ...
     </properties>
 ```
-This sets the property values that can then be re-used within the maven project.  
+This `<properties/>` element is where the property values are set that can then be re-used within the maven project.  
 
 In the `<bootstrapProperties/>` section of the `liberty-maven-plugin` configuration, add the following:
 
 ```XML
                     <bootstrapProperties>
-                        <default.http.port>${testServerHttpPort}</default.http.port>
-                        <default.https.port>${testServerHttpsPort}</default.https.port>
-                        <default.barista.http.port>${baristaHttpPort}</default.barista.http.port>
+                        ...
+                        <env.default_http_port>${testServerHttpPort}</env.default_http_port>
+                        <env.default_https_port>${testServerHttpsPort}</env.default_https_port>
+                        <default_barista_base_url>${baristaBaseURL}</default_barista_base_url>
                     </bootstrapProperties>
 ```
 The above takes the properties we defined in the maven project and passes them to liberty as bootstrap properties.
+
+Note, we're using the `env.` prefix because in the Docker modules of this Masterclass you will set these through environment variables. Note, also the names use underscores (`_`) so they can be passed as environment variables.
 
 Build the project:
 
@@ -338,12 +370,12 @@ The `liberty-maven-plugin` generated the following file `target/liberty/wlp/usr/
 
 ```YAML
 # Generated by liberty-maven-plugin
-default.barista.http.port=9081
-default.http.port=9080
-default.https.port=9443
+default_barista_base_url=http://localhost:9081
+env.default_http_port=9080
+env.default_https_port=9443
 war.name=coffee-shop.war
 ```
-We now need to change the server configuration to use these values.  In the `coffee/coffee-shop/src/main/liberty/config/server.xml` file, change this line:
+We now need to change the server configuration to use these values.  In the `coffee/start/coffee-shop/src/main/liberty/config/server.xml` file, change this line:
 
 ```XML
     <httpEndpoint host="*" httpPort="9080" httpsPort="9443" id="defaultHttpEndpoint"/>
@@ -351,24 +383,25 @@ We now need to change the server configuration to use these values.  In the `cof
 to 
 
 ```XML
-    <httpEndpoint host="*" httpPort="${default.http.port}" httpsPort="${default.https.port}" id="defaultHttpEndpoint"/>
+    <httpEndpoint host="*" httpPort="${env.default_http_port}" httpsPort="${env.default_https_port}" id="defaultHttpEndpoint"/>
 ```
-Next we'll use the `default.barista.http.port` in the code to avoid hard-coding the port number.
 
-Edit the file `coffee/coffee-shop/src/main/java/com/sebastian_daschner/coffee_shop/control/Barista.java`
+Next we'll use the `default_barista_base_url` in the code to avoid hard-coding the location of the `barista` service.
+
+Edit the file `coffee/start/coffee-shop/src/main/java/com/sebastian_daschner/coffee_shop/control/Barista.java`
 
 Change:
 
 ```Java
-    String baristaHttpPort = "9081";
+    String baristaBaseURL = "http://localhost:9081";
 ```
 
 To:
 
 ```Java
     @Inject
-    @ConfigProperty(name="default.barista.http.port")
-    String baristaHttpPort;
+    @ConfigProperty(name="default_barista_base_url")
+    String baristaBaseURL;
 ```
 You'll also need to add the following imports:
 
@@ -378,15 +411,37 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 ```
 This is using the MicroProfile Config specification to inject the configuration value.  Configuration can come from a number of sources, including `bootstrap.properties`.
 
+We also need to make the same changes to the HealthResource of the `coffee-shop` service. Edit the file: `coffee/start/coffee-shop/src/main/java/com/sebastian_daschner/coffee_shop/boundary/HealthResource.java`
+
+Change:
+
+```Java
+    String baristaBaseURL = "http://localhost:9081";
+```
+
+To:
+
+```Java
+    @Inject
+    @ConfigProperty(name="default_barista_base_url")
+    String baristaBaseURL;
+```
+Add the following imports:
+
+```Java
+import javax.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+```
+
 For more information on MicroProfile Config see https://openliberty.io/guides/microprofile-config.html.
 
-Rebuild the code, start the server and try out the endpoint through the Open API UI.
+Rebuild the code, start the `coffee-shop` and `barista` servers and try out the endpoint through the Open API UI.  You can also try out the health endpoint at `http://localhost:9080/health`.
 
 ## Module 6: Integration Testing
 
-Tests are essential for developing maintainable code.  Developing your application using bean-based component models like CDI make your code easily unit-testable. Integration Tests are a little more challenging.  In this section you'll add a `barista` service integration test using the `maven-failsafe-plugin`.  During the build, the liberty server will start with the `barista` application deployed, the test will be run and then the server will be stopped.  The starting and stopping of the Liberty server is configured by the Liberty parent pom (see https://search.maven.org/artifact/net.wasdev.wlp.maven.parent/liberty-maven-app-parent/2.6.3/pom), which is configured as the parent of the Masterclass pom.
+Tests are essential for developing maintainable code.  Developing your application using bean-based component models like CDI makes your code easily unit-testable. Integration Tests are a little more challenging.  In this section you'll add a `barista` service integration test using the `maven-failsafe-plugin`.  During the build, the liberty server will be started along with the `barista` application deployed, the test will be run and then the server will be stopped.  The starting and stopping of the Liberty server is configured by the Liberty parent pom (see https://search.maven.org/artifact/net.wasdev.wlp.maven.parent/liberty-maven-app-parent/2.6.3/pom), which is configured as the parent of the Masterclass poms.
 
-Because we're going to be testing a REST `POST` request, we need JAX-RS client support and also support for serializing `json` into the request.  We also need `junit` for writing the tests.  Add these dependencies to the `coffee/barista/pom.xml`:
+Because we're going to be testing a REST `POST` request, we need JAX-RS client support and also support for serializing `json` into the request.  We also need `junit` for writing the test.  Add these dependencies to the `coffee/start/barista/pom.xml`:
 
 ```XML
         <!-- Test dependencies -->  
@@ -437,9 +492,9 @@ Next add `maven-failsafe-plugin` configuration at the end of the `<plugins/>` se
             </plugin>            
         </plugins>
 ```
-Note, this configuration makes port of the server available to the test as a system property called `liberty.test.port`.
+Note, this configuration makes the port of the server available to the test as a system property called `liberty.test.port`.
 
-Finally, add the test code.  Create a file called, `coffee/barista/src/test/java/com/sebastian-daschner/barista/it/BaristaIT.java` and add the following:
+Finally, add the test code.  Create a file called, `coffee/start/barista/src/test/java/com/sebastian-daschner/barista/it/BaristaIT.java` and add the following:
 
 ```Java
 package com.sebastian_daschner.barista.it;
@@ -527,7 +582,7 @@ Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
 
 We're now going to dockerize the two services and show how we can override the defaults to re-wire the two services.  We're going to use a Docker user-defined network (see https://docs.docker.com/network/network-tutorial-standalone/#use-user-defined-bridge-networks) because we'll be running them on the same host and it keeps things simple.  For real-world production deployments you would use a Kubernetes environment, such as IBM Cloud Private or the IBM Cloud Kubernetes Service.
 
-Take a look at the `coffee/coffee-shop/Dockerfile`:
+Take a look at the `coffee/start/coffee-shop/Dockerfile`:
 
 ```Dockerfile
 FROM open-liberty:kernel-java8-ibm
@@ -535,15 +590,15 @@ ADD /target/coffee-shop.tar.gz /opt/ol
 RUN rm /opt/ol/wlp/usr/servers/defaultServer/bootstrap.properties
 EXPOSE 9080 9443
 ```
-The `FROM` statement is building this image using the Open Liberty kernel image (see https://hub.docker.com/_/open-liberty/ for the available images).  The `ADD` statement unzips our packaged application and server configuration, the `RUN` removes the `bootstrap.properties` file to avoid accidentally using it, and the `EXPOSE` makes the two server ports available outsides the container.
+The `FROM` statement is building this image using the Open Liberty kernel image (see https://hub.docker.com/_/open-liberty/ for the available images).  The `ADD` statement unzips our packaged application and server configuration, the `RUN` removes the `bootstrap.properties` file to avoid accidentally using it and avoid conflicts with the environment variables we will pass in later through Docker, and the `EXPOSE` makes the two server ports available outsides the container.
 
-Let's build the docker image.  In the `coffee/coffee-shop` directory, run:
+Let's build the docker image.  In the `coffee/start/coffee-shop` directory, run:
 
 ```
 docker build -t masterclass:coffee-shop .
 ```
 
-In the `coffee/barista` directory, run:
+In the `coffee/start/barista` directory, run:
 
 ```
 docker build -t masterclass:barista .
@@ -560,6 +615,8 @@ Run the `barista` container:
 ```
 docker run --network=masterclass-net --name=barista masterclass:barista
 ```
+
+Note, we don't need map the `barista` service ports outside the container because the bridge network gives access to the other containers on the same network.
 
 Next, we're going to run the `coffee-shop` container.  For it to work we'll need to provide new values for ports and the location of the barista service.  Run the `coffee-shop` container
 
@@ -616,11 +673,13 @@ If you need to remove a container, use:
 ```
 docker container rm <container name>
 ```
+You should now be able to loads the `coffee-shop` service's Open API page and call the service.  Give it a try.
+
 ### Overriding Dev Server Configuration
 
-The above works fine, but still has a metrics endpoint with authentication turned off.  We'll now show how `configDropins/overrides` can be used to override existing, or add new, server configuration.  For example, this can be used to add server configuration in a production environment.  The approach we're going to take is to use a Docker volume, but in a real-world scenario you would use Kubernetes ConfigMaps to include the production server configuration, or build a new image based on the dev image that adds the production configuration.  Whichever approach is taken, separating the dev, staging and prod configuration into separate server configuration files is the best practice.
+The above works fine, but still has a metrics endpoint with authentication turned off.  We'll now show how `configDropins/overrides` can be used to override existing, or add new, server configuration.  For example, this can be used to add server configuration in a production environment.  The approach we're going to take is to use a Docker volume, but in a real-world scenario you would use Kubernetes ConfigMaps to include the production server configuration, or build a new image based on the dev image that adds the production configuration.  Whichever approach is taken, separating the dev, staging and prod configuration into separate server configuration files is the goal.
 
-Take a look at the file `coffee/coffee-shop/configDropins/overrides/metrics-prod.xml`:
+Take a look at the file `coffee/start/coffee-shop/configDropins/overrides/metrics-prod.xml`:
 
 ```XML
 <?xml version="1.0" encoding="UTF-8"?>
@@ -644,14 +703,14 @@ Take a look at the file `coffee/coffee-shop/configDropins/overrides/metrics-prod
      
 </server>
 ```
-You'll see that this turns metrics authentication on and sets up some simple security required for securing/accessing the metrics endpoint.  Note, this configuration really is NOT FOR PRODUCTION, it's simply aiming to show how to override, or provide new, server configuration.
+You'll see that this turns metrics authentication on and sets up some simple security required for securing/accessing the metrics endpoint.  Note, this configuration really is **NOT FOR PRODUCTION**, it's simply aiming to show how to override, or provide new, server configuration.
 
-If you're on a unix-based OS, in the `coffee/coffee-shop`directory, run the `coffee-shop` container:
+If you're on a unix-based OS, in the `coffee/start/coffee-shop`directory, run the `coffee-shop` container:
 
 ```
 docker run -p 9080:9080 -p 9445:9443 --network=masterclass-net --name=coffee-shop -e default_barista_base_url='http://barista:9081' -e default_http_port=9080 -e default_https_port=9443 -v $(pwd)/configDropins/overrides:/opt/ol/wlp/usr/servers/defaultServer/configDropins/overrides  masterclass:coffee-shop
 ```
-The above relies on `pwd` to fill in the docker volume source path.  If you're on Windows, replace `$(pwd)` with the absolute path to the `coffee/coffee-shop` directory in the above command.
+The above relies on `pwd` to fill in the docker volume source path.  If you're on Windows, replace `$(pwd)` with the absolute path to the `coffee/start/coffee-shop` directory in the above command.
 
 You should see the following message as the server is starting:
 
@@ -671,5 +730,5 @@ You will see that the browser complains about the certificate.  This is a self-s
 
 ## Module 8: Support Licensing
 
-TODO: Alasdair to add some words
+Open Liberty is Open Source under the Eclipse Public License v1, as a result there is no fee to use in production.  Community support is available via StackOverflow or the mail list, and bugs can be raised in github (https://github.com/openliberty/open-liberty).  Commercial support from IBM is available for Open Liberty, you can find out more on the IBM Marketplace. The WebSphere Liberty product is built on Open Liberty, there is no migration required to use WebSphere Liberty, you simply point to WebSphere Liberty in your build.  Users of WebSphere Liberty get support for the packaged Open Liberty function.
 
