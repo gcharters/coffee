@@ -128,8 +128,8 @@
                 <artifactId>liberty-maven-plugin</artifactId>
                 <configuration>
                     <assemblyArtifact>
-                        <groupId>io.openliberty</groupId>
-                        <artifactId>openliberty-kernel</artifactId>
+                        <groupId>com.ibm.websphere.appserver.runtime</groupId>
+                        <artifactId>wlp-kernel</artifactId>
                         <version>[18.0.0.3,)</version>
                         <type>zip</type>
                     </assemblyArtifact>

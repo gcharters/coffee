@@ -2,7 +2,26 @@
 
 This document contains the hands-on lab modules for the Open Liberty Masterclass.  It is intended to be used in conjunction with taught materials, however, feel free to give it a try, even if you're not in a Masterclass.
 
-## Before you Begin
+## Table of Contents
+
+- [Open Liberty Masterclass](#open-liberty-masterclass)
+  - [Table of Contents](#table-of-contents)
+  - [Before you begin](#before-you-begin)
+    - [Install Pre-requisites](#install-pre-requisites)
+    - [Prime Maven and Docker Caches](#prime-maven-and-docker-caches)
+  - [The Application](#the-application)
+  - [Module 1: Build](#module-1-build)
+  - [Module 2: Feature-based Build](#module-2-feature-based-build)
+  - [Module 3: Application APIs](#module-3-application-apis)
+  - [Module 4: Server Configuration](#module-4-server-configuration)
+  - [Module 5: Externalizing Configuration](#module-5-externalizing-configuration)
+  - [Module 6: Integration Testing](#module-6-integration-testing)
+  - [Module 7: Docker](#module-7-docker)
+    - [Overriding Dev Server Configuration](#overriding-dev-server-configuration)
+  - [Module 8: Support Licensing](#module-8-support-licensing)
+  - [Conclusion](#conclusion)
+
+## Before you begin
 
 ### Install Pre-requisites
 
@@ -357,7 +376,7 @@ In the `<bootstrapProperties/>` section of the `liberty-maven-plugin` configurat
                         <default_barista_base_url>${baristaBaseURL}</default_barista_base_url>
                     </bootstrapProperties>
 ```
-The above takes the properties we defined in the maven project and passes them to liberty as bootstrap properties.
+The above takes the properties we defined in the maven project and passes them to Liberty as bootstrap properties.
 
 Note, we're using the `env.` prefix because in the Docker modules of this Masterclass you will set these through environment variables. Note, also the names use underscores (`_`) so they can be passed as environment variables.
 
@@ -439,7 +458,7 @@ Rebuild the code, start the `coffee-shop` and `barista` servers and try out the 
 
 ## Module 6: Integration Testing
 
-Tests are essential for developing maintainable code.  Developing your application using bean-based component models like CDI makes your code easily unit-testable. Integration Tests are a little more challenging.  In this section you'll add a `barista` service integration test using the `maven-failsafe-plugin`.  During the build, the liberty server will be started along with the `barista` application deployed, the test will be run and then the server will be stopped.  The starting and stopping of the Liberty server is configured by the Liberty parent pom (see https://search.maven.org/artifact/net.wasdev.wlp.maven.parent/liberty-maven-app-parent/2.6.3/pom), which is configured as the parent of the Masterclass poms.
+Tests are essential for developing maintainable code.  Developing your application using bean-based component models like CDI makes your code easily unit-testable. Integration Tests are a little more challenging.  In this section you'll add a `barista` service integration test using the `maven-failsafe-plugin`.  During the build, the Liberty server will be started along with the `barista` application deployed, the test will be run and then the server will be stopped.  The starting and stopping of the Liberty server is configured by the Liberty parent pom (see https://search.maven.org/artifact/net.wasdev.wlp.maven.parent/liberty-maven-app-parent/2.6.3/pom), which is configured as the parent of the Masterclass poms.
 
 Because we're going to be testing a REST `POST` request, we need JAX-RS client support and also support for serializing `json` into the request.  We also need `junit` for writing the test.  Add these dependencies to the `coffee/start/barista/pom.xml`:
 
@@ -731,4 +750,33 @@ You will see that the browser complains about the certificate.  This is a self-s
 ## Module 8: Support Licensing
 
 Open Liberty is Open Source under the Eclipse Public License v1, as a result there is no fee to use in production.  Community support is available via StackOverflow or the mail list, and bugs can be raised in github (https://github.com/openliberty/open-liberty).  Commercial support from IBM is available for Open Liberty, you can find out more on the IBM Marketplace. The WebSphere Liberty product is built on Open Liberty, there is no migration required to use WebSphere Liberty, you simply point to WebSphere Liberty in your build.  Users of WebSphere Liberty get support for the packaged Open Liberty function.
+
+WebSphere Liberty is also available in Maven Central - see https://search.maven.org/search?q=g:com.ibm.websphere.appserver.runtime
+
+You can use WebSphere Liberty for development even if you haven't purchased it, but if you have production entitlement you can easily change to use it, as follows:
+
+In the `coffee/start/coffee-shop/pom.xml` change these two lines from:
+
+```XML
+                        <groupId>io.openliberty</groupId>
+                        <artifactId>openliberty-kernel</artifactId>
+```
+To:
+```XML
+                        <groupId>com.ibm.websphere.appserver.runtime</groupId>
+                        <artifactId>wlp-kernel</artifactId>
+```
+Rebuild and re-start the `coffee-shop` service:
+
+```
+mvn install liberty:run
+```
+
+Try the service out using the Open API Web page and you should see the behavior is identical.  Not surprising since the code is identical, from the same build, just built into WebSphere Liberty.
+
+## Conclusion
+
+Thanks for trying the Open Liberty Materclass. If you're interested in finding out more, please visit http://openliberty.io, and for more hands-on esperience, why not try the Open Liberty Guides - http://openliberty.io/guides.
+
+
 
