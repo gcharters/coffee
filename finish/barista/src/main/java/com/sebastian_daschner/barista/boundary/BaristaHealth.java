@@ -7,7 +7,7 @@ import org.eclipse.microprofile.health.HealthCheckResponse;
 
 @Health
 @ApplicationScoped
-public class HealthResource implements HealthCheck {
+public class BaristaHealth implements HealthCheck {
 	
   public boolean isHealthy() {
       // Nothing to check in this implementation

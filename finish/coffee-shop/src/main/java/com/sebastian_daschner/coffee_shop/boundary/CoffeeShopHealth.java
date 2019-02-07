@@ -14,7 +14,7 @@ import org.eclipse.microprofile.health.HealthCheckResponse;
 
 @Health
 @ApplicationScoped
-public class HealthResource implements HealthCheck {
+public class CoffeeShopHealth implements HealthCheck {
 
     @Inject
     @ConfigProperty(name="default_barista_base_url")
@@ -38,10 +38,10 @@ public class HealthResource implements HealthCheck {
     @Override
     public HealthCheckResponse call() {
         if (!isHealthy()) {
-            return HealthCheckResponse.named(this.getClass().getSimpleName()).withData("services", "not available")
+            return HealthCheckResponse.named(this.getClass().getSimpleName()).withData("barista service", "not available")
                     .down().build();
         }
-        return HealthCheckResponse.named(this.getClass().getSimpleName()).withData("services", "available").up()
+        return HealthCheckResponse.named(this.getClass().getSimpleName()).withData("barista service", "available").up()
                 .build();
     }
 

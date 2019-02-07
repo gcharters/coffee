@@ -430,7 +430,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 ```
 This is using the MicroProfile Config specification to inject the configuration value.  Configuration can come from a number of sources, including `bootstrap.properties`.
 
-We also need to make the same changes to the HealthResource of the `coffee-shop` service. Edit the file: `coffee/start/coffee-shop/src/main/java/com/sebastian_daschner/coffee_shop/boundary/HealthResource.java`
+We also need to make the same changes to the CoffeeShopHealth of the `coffee-shop` service. Edit the file: `coffee/start/coffee-shop/src/main/java/com/sebastian_daschner/coffee_shop/boundary/CoffeeShopHealth.java`
 
 Change:
 
