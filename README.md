@@ -32,8 +32,6 @@ This document contains the hands-on lab modules for the Open Liberty Masterclass
 * Docker 
   * **Windows:** Set up Docker for Windows as described at https://docs.docker.com/docker-for-windows/#kubernetes.
   *  **Mac:** Set up Docker for Mac as described at https://docs.docker.com/docker-for-mac/#kubernetes.
-  *  After following one of the sets of instructions, ensure that Kubernetes (not Swarm) is selected as the orchestrator in Docker Preferences.
-  *  **Linux:** You will use Minikube as a single-node Kubernetes cluster that runs locally in a virtual machine. For Minikube installation instructions see https://github.com/kubernetes/minikube. Make sure to read the "Requirements" section as different operating systems require different prerequisites to get Minikube running.
 
 ### Prime Maven and Docker Caches
 
@@ -336,7 +334,17 @@ Rebuild, restart the server and visit the metrics endpoint, you should see a num
 base:classloader_total_loaded_class_count 10616
 ...
 ```
-This doesn't contain the metrics you added because the service hasn't been called and so no application metrics have been recorded. Use the OpenAPI UI to send a few requests to the service and reload the metrics page.  At the bottom of the metrics you should see:
+This doesn't contain the metrics you added because the service hasn't been called and so no application metrics have been recorded. Use the OpenAPI UI (http://localhost:9080/openapi/ui/) to send a few requests to the service.
+
+As with the `barista` service, you'll need to specify the following payload for the `POST` request:
+
+```JSON
+{
+  "type": "ESPRESSO"
+}
+```
+
+Reload the metrics page and at the bottom of the metrics results you should see:
 
 ```
 ...
@@ -353,7 +361,7 @@ Liberty lets your application pick up configuration from a number of sources, su
 
 Bootstrap.properties lets you provide simple configuration values to substitute in the server configuration and also to use within the application.  The following example replaces the hard-coded base URL the `coffee-shop` service uses to talk to the `barista` service, as well as the ports it exposes.
 
-In the `coffee/start/coffee-shop/pom.xml` file, in the `<properties/>` add:
+In the `coffee/start/coffee-shop/pom.xml` file, in the existing `<properties/>` element, add the following port and url values:
 
 ```XML
     <properties>
@@ -475,7 +483,7 @@ Because we're going to be testing a REST `POST` request, we need JAX-RS client s
             <artifactId>cxf-rt-rs-mp-client</artifactId>
             <version>3.3.0</version>
             <scope>test</scope>
-        </dependency>     
+        </dependency>      
         <dependency>
             <groupId>com.fasterxml.jackson.jaxrs</groupId>
             <artifactId>jackson-jaxrs-json-provider</artifactId>
@@ -484,7 +492,7 @@ Because we're going to be testing a REST `POST` request, we need JAX-RS client s
         </dependency>
 ```
 
-Note the `<scope/>` of the tests is set to `test` because we only want the dependencies to be used during testing.
+Note the `<scope/>` of the dependencies is set to `test` because we only want the dependencies to be used during testing.
 
 Next add `maven-failsafe-plugin` configuration at the end of the `<plugins/>` section:
 
@@ -692,7 +700,7 @@ If you need to remove a container, use:
 ```
 docker container rm <container name>
 ```
-You should now be able to loads the `coffee-shop` service's Open API page and call the service.  Give it a try.
+You should now be able to load the `coffee-shop` service's Open API page and call the service.  Give it a try.
 
 ### Overriding Dev Server Configuration
 
