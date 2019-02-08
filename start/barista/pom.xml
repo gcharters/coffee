@@ -23,7 +23,7 @@
         <testServerHttpsPort>9444</testServerHttpsPort>
 
         <packaging.type>usr</packaging.type>
-        <package.file>barista.tar.gz</package.file>
+        <package.file>defaultServer.zip</package.file>
         <failOnMissingWebXml>false</failOnMissingWebXml>
         <liberty.version>[18.0.0.3,)</liberty.version>
     </properties>
@@ -96,8 +96,8 @@
                     <packageFile>${project.build.directory}/${package.file}</packageFile>                    
                     <bootstrapProperties>
                         <war.name>${artifactId}.war</war.name>
-                        <default.http.port>${testServerHttpPort}</default.http.port>
-                        <default.https.port>${testServerHttpsPort}</default.https.port>
+                        <env.default.http.port>${testServerHttpPort}</env.default.http.port>
+                        <env.default.https.port>${testServerHttpsPort}</env.default.https.port>
                     </bootstrapProperties>
                     <looseApplication>false</looseApplication>
                 </configuration>

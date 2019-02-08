@@ -612,12 +612,25 @@ We're now going to dockerize the two services and show how we can override the d
 Take a look at the `open-liberty-masterclass/start/coffee-shop/Dockerfile`:
 
 ```Dockerfile
-FROM open-liberty:kernel-java8-ibm
-ADD /target/coffee-shop.tar.gz /opt/ol
+FROM open-liberty:kernel-java8-ibm as server-setup
+COPY /target/defaultServer.zip /config/
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends unzip \
+    && unzip /config/defaultServer.zip \
+    && mv /wlp/usr/servers/defaultServer/* /config/ \
+    && rm -rf /config/wlp \
+    && rm -rf /config/defaultServer.zip \
+    && apt-get remove -y unzip
 RUN rm /opt/ol/wlp/usr/servers/defaultServer/bootstrap.properties
+
+FROM open-liberty:kernel-java8-ibm
+LABEL maintainer="Graham Charters" vendor="IBM" github="https://github.com/WASdev/ci.maven"
+COPY --from=server-setup /config/ /config/
 EXPOSE 9080 9443
 ```
-The `FROM` statement is building this image using the Open Liberty kernel image (see https://hub.docker.com/_/open-liberty/ for the available images).  The `ADD` statement unzips our packaged application and server configuration, the `RUN` removes the `bootstrap.properties` file to avoid accidentally using it and avoid conflicts with the environment variables we will pass in later through Docker, and the `EXPOSE` makes the two server ports available outsides the container.
+This Dockerfile uses Docker build stages.  The first stage gets all the application and server configuration contents into the right location and the second builds the actual final image.  Using stages means any temporary files from the first stage don't end up in the final image, so it's smaller.  
+
+The `FROM` statement is building this image using the Open Liberty kernel image (see https://hub.docker.com/_/open-liberty/ for the available images).  The second `RUN` removes the `bootstrap.properties` file to avoid accidentally using it and avoid conflicts with the environment variables we will pass in later through Docker.  The `EXPOSE` makes the two server ports available outside the container.
 
 Let's build the docker image.  In the `open-liberty-masterclass/start/coffee-shop` directory, run:
 
@@ -704,7 +717,9 @@ You should now be able to load the `coffee-shop` service's Open API page and cal
 
 ### Overriding Dev Server Configuration
 
-The above works fine, but still has a metrics endpoint with authentication turned off.  We'll now show how `configDropins/overrides` can be used to override existing, or add new, server configuration.  For example, this can be used to add server configuration in a production environment.  The approach we're going to take is to use a Docker volume, but in a real-world scenario you would use Kubernetes ConfigMaps to include the production server configuration, or build a new image based on the dev image that adds the production configuration.  Whichever approach is taken, separating the dev, staging and prod configuration into separate server configuration files is the goal.
+The above works fine, but still has a metrics endpoint with authentication turned off.  We'll now show how `configDropins/overrides` can be used to override existing, or add new, server configuration.  For example, this can be used to add server configuration in a production environment.  The approach we're going to take is to use a Docker volume, but in a real-world scenario you would use Kubernetes ConfigMaps and secrets to include the production server configuration, security configuration and environment variables.  
+
+In fact, unlike what we have done here, the best practice is to build an image that does not contain any environment specific configuration (such as the unsecured endpoint in our example) and then add those things through external configuration in the development, staging and production environments.  The goal is to ensure deployment of the image without configuration doesn't not cause undesirable results such as security vulnerabilities or talking to the wrong data sources.
 
 Take a look at the file `open-liberty-masterclass/start/coffee-shop/configDropins/overrides/metrics-prod.xml`:
 
