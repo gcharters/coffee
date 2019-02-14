@@ -27,11 +27,11 @@ This document contains the hands-on lab modules for the Open Liberty Masterclass
 
 * A Java 8 JDK (e.g. https://adoptopenjdk.net/?variant=openjdk8&jvmVariant=openj9)
 * Apache Maven (https://maven.apache.org/)
-* A git client
+* A git client (https://git-scm.com/downloads)
 * An editor with Java support (e.g. Eclipse, VS Code, IntelliJ)
 * Docker 
-  * **Windows:** Set up Docker for Windows as described at https://docs.docker.com/docker-for-windows/#kubernetes.
-  *  **Mac:** Set up Docker for Mac as described at https://docs.docker.com/docker-for-mac/#kubernetes.
+  * **Windows:** Set up Docker for Windows as described at https://docs.docker.com/docker-for-windows/.
+  *  **Mac:** Set up Docker for Mac as described at https://docs.docker.com/docker-for-mac/.
 
 ### Prime Maven and Docker Caches
 
@@ -40,7 +40,7 @@ If you will be taking the Masterclass at a location with limited network bandwid
 ```
 git clone https://github.com/gcharters/coffee.git
 cd open-liberty-masterclass/start/coffee-shop
-mvn package
+mvn install
 docker build -t masterclass:coffee-shop .
 ```
 ## The Application
