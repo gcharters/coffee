@@ -30,8 +30,8 @@ This document contains the hands-on lab modules for the Open Liberty Masterclass
 * A git client
 * An editor with Java support (e.g. Eclipse, VS Code, IntelliJ)
 * Docker 
-  * **Windows:** Set up Docker for Windows as described at https://docs.docker.com/docker-for-windows/#kubernetes.
-  *  **Mac:** Set up Docker for Mac as described at https://docs.docker.com/docker-for-mac/#kubernetes.
+  * **Windows:** Set up Docker for Windows as described at https://docs.docker.com/docker-for-windows/.
+  *  **Mac:** Set up Docker for Mac as described at https://docs.docker.com/docker-for-mac/.
 
 ### Prime Maven and Docker Caches
 
