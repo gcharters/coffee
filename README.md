@@ -40,7 +40,7 @@ If you will be taking the Masterclass at a location with limited network bandwid
 ```
 git clone https://github.com/gcharters/coffee.git
 cd open-liberty-masterclass/start/coffee-shop
-mvn package
+mvn install
 docker build -t masterclass:coffee-shop .
 ```
 ## The Application
