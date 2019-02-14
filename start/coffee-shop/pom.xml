@@ -23,7 +23,7 @@
         <baristaBaseURL>http://localhost:9081</baristaBaseURL>
 
         <packaging.type>usr</packaging.type>
-        <package.file>coffee-shop.tar.gz</package.file>
+        <package.file>defaultServer.zip</package.file>
         
         <failOnMissingWebXml>false</failOnMissingWebXml>
     </properties>
