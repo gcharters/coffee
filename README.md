@@ -27,7 +27,7 @@ This document contains the hands-on lab modules for the Open Liberty Masterclass
 
 * A Java 8 JDK (e.g. https://adoptopenjdk.net/?variant=openjdk8&jvmVariant=openj9)
 * Apache Maven (https://maven.apache.org/)
-* A git client
+* A git client (https://git-scm.com/downloads)
 * An editor with Java support (e.g. Eclipse, VS Code, IntelliJ)
 * Docker 
   * **Windows:** Set up Docker for Windows as described at https://docs.docker.com/docker-for-windows/.
