@@ -164,7 +164,7 @@ Near the top of the file, you'll see the following `<featureManager/>` entry:
         <feature>ejbLite-3.2</feature>
         <feature>cdi-2.0</feature>
         <feature>beanValidation-2.0</feature>
-        <feature>mpHealth-1.0</feature>
+        <feature>mpHealth-2.0</feature>
         <feature>mpConfig-1.3</feature>
         <feature>mpRestClient-1.1</feature>
         <feature>jsonp-1.1</feature>
@@ -238,7 +238,7 @@ mvn install
 You should see that during the build, the following features are installed, and include mpMetrics-1.1:
 
 ```
-[INFO] The following features have been installed: mpConfig-1.3 jndi-1.0 ejbLite-3.2 el-3.0 beanValidation-2.0 cdi-2.0 servlet-3.1 json-1.0 cdi-1.2 mpHealth-1.0 jaxrsClient-2.0 jsonp-1.0 mpRestClient-1.1 jsonp-1.1 servlet-4.0 jaxrsClient-2.1 jaxrs-2.1 ssl-1.0 distributedMap-1.0 mpConfig-1.2 mpMetrics-1.1 jaxrs-2.0 mpOpenAPI-1.0 appSecurity-2.0 
+[INFO] The following features have been installed: mpConfig-1.3 jndi-1.0 ejbLite-3.2 el-3.0 beanValidation-2.0 cdi-2.0 servlet-3.1 json-1.0 cdi-1.2 mpHealth-2.0 jaxrsClient-2.0 jsonp-1.0 mpRestClient-1.1 jsonp-1.1 servlet-4.0 jaxrsClient-2.1 jaxrs-2.1 ssl-1.0 distributedMap-1.0 mpConfig-1.2 mpMetrics-1.1 jaxrs-2.0 mpOpenAPI-1.0 appSecurity-2.0 
 
 ```
 Now we have the API available, we can update the application to include a metric which will count the number of times a coffee order is requested. In the file `open-liberty-masterclass/start/coffee-shop/src/main/java/com/sebastian_daschner/coffee_shop/boundary/OrdersResource.java`, add the following `@Counted` annotation to the `orderCoffee` method:

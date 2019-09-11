@@ -25,7 +25,7 @@
         <packaging.type>usr</packaging.type>
         <package.file>defaultServer.zip</package.file>
         <failOnMissingWebXml>false</failOnMissingWebXml>
-        <liberty.version>[18.0.0.3,)</liberty.version>
+        <liberty.version>[18.0.0.3,19.0.0.8]</liberty.version>
     </properties>
 
     <dependencyManagement>

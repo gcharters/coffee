@@ -26,6 +26,7 @@
         <package.file>defaultServer.zip</package.file>
         
         <failOnMissingWebXml>false</failOnMissingWebXml>
+        <liberty.version>[18.0.0.3,19.0.0.8]</liberty.version>
     </properties>
 
     <dependencyManagement>
@@ -74,7 +75,7 @@
         </dependency> 
         <dependency>
             <groupId>io.openliberty.features</groupId>
-            <artifactId>mpHealth-1.0</artifactId>
+            <artifactId>mpHealth-2.0</artifactId>
             <type>esa</type>
             <scope>provided</scope>
         </dependency>                      
@@ -118,7 +119,7 @@
                     <assemblyArtifact>
                         <groupId>io.openliberty</groupId>
                         <artifactId>openliberty-kernel</artifactId>
-                        <version>[18.0.0.3,)</version>
+                        <version>${liberty.version}</version>
                         <type>zip</type>
                     </assemblyArtifact>
                     <configFile>src/main/liberty/config/server.xml</configFile>
