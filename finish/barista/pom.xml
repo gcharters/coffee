@@ -28,6 +28,14 @@
         <liberty.version>[18.0.0.3,19.0.0.8]</liberty.version>
     </properties>
 
+    <repositories>
+        <!-- https://jitpack.io/#microshed/microshed-testing -->
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -41,6 +49,28 @@
     </dependencyManagement>
 
     <dependencies>
+        <!-- For MicroShed Testing -->
+        <dependency>
+            <groupId>com.github.microshed.microshed-testing</groupId>
+            <artifactId>microshed-testing-testcontainers</artifactId>
+            <version>v0.4-beta</version>
+            <scope>test</scope>
+        </dependency>
+    
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.4.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.26</version>
+            <scope>test</scope>
+        </dependency>
+
       <!--Open Liberty features -->
         <dependency>
             <groupId>io.openliberty.features</groupId>
@@ -62,12 +92,12 @@
         </dependency>  
 
         <!-- Test dependencies -->  
-        <dependency>
+        <!--<dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
             <scope>test</scope>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-rs-mp-client</artifactId>
