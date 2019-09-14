@@ -52,18 +52,16 @@
         <!-- For MicroShed Testing -->
         <dependency>
             <groupId>com.github.microshed.microshed-testing</groupId>
-            <artifactId>microshed-testing-testcontainers</artifactId>
-            <version>v0.4-beta</version>
+            <artifactId>microshed-testing-liberty</artifactId>
+            <version>0.4.1-beta</version>
             <scope>test</scope>
         </dependency>
-    
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>5.4.2</version>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
@@ -90,26 +88,6 @@
             <type>esa</type>
             <scope>provided</scope>
         </dependency>  
-
-        <!-- Test dependencies -->  
-        <!--<dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
-        </dependency>-->
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-rs-mp-client</artifactId>
-            <version>3.3.0</version>
-            <scope>test</scope>
-        </dependency>     
-        <dependency>
-            <groupId>com.fasterxml.jackson.jaxrs</groupId>
-            <artifactId>jackson-jaxrs-json-provider</artifactId>
-            <version>2.9.3</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -155,21 +133,32 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.19.1</version>
+                <version>3.0.0-M1</version>
                 <executions>
                     <execution>
+                        <phase>integration-test</phase>
+                        <id>integration-test</id>
                         <goals>
                             <goal>integration-test</goal>
-                            <goal>verify</goal>
                         </goals>
                         <configuration>
-                            <systemPropertyVariables>
-                                <liberty.test.port>${testServerHttpPort}</liberty.test.port>
-                            </systemPropertyVariables>
+                            <trimStackTrace>false</trimStackTrace>
+                            <!-- Starting in version 3.0 of the liberty-maven-plugin these will be set automatically -->
+                            <systemProperties>
+                                <microshed_hostname>localhost</microshed_hostname>
+                                <microshed_http_port>${testServerHttpPort}</microshed_http_port>
+                                <WLP_USR_DIR>${project.build.directory}/liberty/wlp/usr</WLP_USR_DIR>
+                            </systemProperties>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>verify-results</id>
+                        <goals>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
                 </executions>
-            </plugin>            
+            </plugin>   
         </plugins>
     </build>
 
