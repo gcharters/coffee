@@ -5,9 +5,9 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.BeforeClass;
 
 import javax.inject.Inject;
-import javax.ws.rs.core.Response;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeAll;;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -25,7 +25,7 @@ import com.sebastian_daschner.barista.entity.CoffeeType;
 public class BaristaIT {
     private static String URL;
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         String port = System.getProperty("liberty.test.port");
         URL = "http://localhost:" + port + "/barista/resources/brews";

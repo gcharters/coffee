@@ -49,13 +49,7 @@
     </dependencyManagement>
 
     <dependencies>
-        <!-- For MicroShed Testing -->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>5.4.2</version>
-            <scope>test</scope>
-        </dependency>          
+        <!-- For MicroShed Testing -->      
         <dependency>
             <groupId>com.github.microshed.microshed-testing</groupId>
             <artifactId>microshed-testing-liberty</artifactId>
@@ -71,11 +65,11 @@
 
         <!-- Integration Testings -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.4.2</version>
             <scope>test</scope>
-        </dependency>         
+        </dependency>       
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-rs-mp-client</artifactId>

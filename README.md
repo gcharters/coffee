@@ -18,7 +18,8 @@ This document contains the hands-on lab modules for the Open Liberty Masterclass
   - [Module 6: Integration Testing](#module-6-integration-testing)
   - [Module 7: Docker](#module-7-docker)
     - [Overriding Dev Server Configuration](#overriding-dev-server-configuration)
-  - [Module 8: Support Licensing](#module-8-support-licensing)
+  - [Module 8: Testing in Containers](#module-8-testing-in-containers)
+  - [Module 9: Support Licensing](#module-9-support-licensing)
   - [Conclusion](#conclusion)
 
 ## Before you begin
@@ -473,11 +474,11 @@ Because we're going to be testing a REST `POST` request, we need JAX-RS client s
 ```XML
         <!-- Test dependencies -->  
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.4.2</version>
             <scope>test</scope>
-        </dependency>
+        </dependency>    
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-rs-mp-client</artifactId>
@@ -492,6 +493,8 @@ Because we're going to be testing a REST `POST` request, we need JAX-RS client s
         </dependency>
 ```
 
+Note, the later `Testing in Containers` module requires the JUnit 5 Jupiter API so we're using the same API here.
+
 Note the `<scope/>` of the dependencies is set to `test` because we only want the dependencies to be used during testing.
 
 Next add `maven-failsafe-plugin` configuration at the end of the `<plugins/>` section:
@@ -502,21 +505,30 @@ Next add `maven-failsafe-plugin` configuration at the end of the `<plugins/>` se
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.19.1</version>
+                <version>3.0.0-M1</version>
                 <executions>
                     <execution>
+                        <phase>integration-test</phase>
+                        <id>integration-test</id>
                         <goals>
                             <goal>integration-test</goal>
-                            <goal>verify</goal>
                         </goals>
                         <configuration>
-                            <systemPropertyVariables>
+                            <trimStackTrace>false</trimStackTrace>
+                            <!-- Starting in version 3.0 of the liberty-maven-plugin these will be set automatically -->
+                            <systemProperties>
                                 <liberty.test.port>${testServerHttpPort}</liberty.test.port>
-                            </systemPropertyVariables>
+                            </systemProperties>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>verify-results</id>
+                        <goals>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
                 </executions>
-            </plugin>            
+            </plugin>                        
         </plugins>
 ```
 Note, this configuration makes the port of the server available to the test as a system property called `liberty.test.port`.
@@ -526,9 +538,14 @@ Finally, add the test code.  Create a file called, `open-liberty-masterclass/sta
 ```Java
 package com.sebastian_daschner.barista.it;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import org.junit.BeforeClass;
-import org.junit.Test;
+
+import javax.inject.Inject;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeAll;;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -539,13 +556,14 @@ import javax.ws.rs.core.MediaType;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
+import com.sebastian_daschner.barista.boundary.BrewsResource;
 import com.sebastian_daschner.barista.entity.CoffeeBrew;
 import com.sebastian_daschner.barista.entity.CoffeeType;
 
 public class BaristaIT {
     private static String URL;
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         String port = System.getProperty("liberty.test.port");
         URL = "http://localhost:" + port + "/barista/resources/brews";
@@ -581,6 +599,7 @@ public class BaristaIT {
         }
     }
 }
+
 ```
 
 This test sends a `json` request to the `barista` service and checks for a `200 OK` response. 
@@ -632,6 +651,7 @@ LABEL maintainer="Graham Charters" vendor="IBM" github="https://github.com/WASde
 COPY --from=server-setup /config/ /config/
 EXPOSE 9080 9443
 ```
+
 This Dockerfile uses Docker build stages.  The first stage gets all the application and server configuration contents into the right location and the second builds the actual final image.  Using stages means any temporary files from the first stage don't end up in the final image, so it's smaller.  
 
 The `FROM` statement is building this image using the Open Liberty kernel image (see https://hub.docker.com/_/open-liberty/ for the available images).  The second `RUN` removes the `bootstrap.properties` file to avoid accidentally using it and avoid conflicts with the environment variables we will pass in later through Docker.  The `EXPOSE` makes the two server ports available outside the container.
@@ -773,10 +793,179 @@ Access the metrics endpoint at: `https://localhost:9445/metrics`
 
 You will see that the browser complains about the certificate.  This is a self-signed certificate generated by Liberty for test purposes.  Accept the exception (note,  Firefox may not allow you to do this in which case you'll need to use a different browser).  You'll be presented with a login prompt.  Sign in with userid `admin` and password `change_it` (the values in the `metrics-prod.xml`).
 
+## Module 8: Testing in Containers
 
-## Module 8: Support Licensing
+We saw in an earlier module, how to perform Integration Tests against the application running in the server.  We then showed how to package the application and server and run them inside a Docker container.  Assuming we're going to deploy our application in production inside Containers it would be a good idea to actually performs tests against that configuration.  The more we can make our development and test environments the same as production, the less likely we are to encounter issues in production.  MicroShed Testing (microshed.org) is a project that enables us to do just that.
 
-Open Liberty is Open Source under the Eclipse Public License v1, as a result there is no fee to use in production.  Community support is available via StackOverflow or the mail list, and bugs can be raised in github (https://github.com/openliberty/open-liberty).  Commercial support from IBM is available for Open Liberty, you can find out more on the IBM Marketplace. The WebSphere Liberty product is built on Open Liberty, there is no migration required to use WebSphere Liberty, you simply point to WebSphere Liberty in your build.  Users of WebSphere Liberty get support for the packaged Open Liberty function.
+Let's create a new Integration Test that will perform the same test, but inside a running container.  In the Barista project, add the follow dependencies to the `pom.xml` file in the `<dependencies>` element:
+
+```XML
+        <!-- For MicroShed Testing -->        
+        <dependency>
+            <groupId>com.github.microshed.microshed-testing</groupId>
+            <artifactId>microshed-testing-liberty</artifactId>
+            <version>0.4.1-beta</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.26</version>
+            <scope>test</scope>
+        </dependency>
+```
+
+Add the following `<repository>` element to the `pom.xml`.  This should be as a peer of the `<properties>` element:
+
+```XML
+    <repositories>
+        <!-- https://jitpack.io/#microshed/microshed-testing -->
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+```
+
+The MicroShed Testing project is not released to Maven Central at the moment and so this entries tells maven about the repository from where it can be downloaded.
+
+Create a new Integration Test called `BaristaContainerIT.java` in the directory `start/barista/src/test/java/com/sebastian_daschner/barista/it` and add the following code:
+
+```Java
+package com.sebastian_daschner.barista.it;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import javax.inject.Inject;
+import javax.ws.rs.core.Response;
+
+import org.junit.jupiter.api.Test;
+import org.microshed.testing.jupiter.MicroShedTest;
+import org.microshed.testing.testcontainers.MicroProfileApplication;
+import org.testcontainers.junit.jupiter.Container;
+
+import com.sebastian_daschner.barista.boundary.BrewsResource;
+import com.sebastian_daschner.barista.entity.CoffeeBrew;
+import com.sebastian_daschner.barista.entity.CoffeeType;
+
+@MicroShedTest
+public class BaristaContainerIT {
+
+    @Container
+    public static MicroProfileApplication app = new MicroProfileApplication()
+                    .withAppContextRoot("/barista")
+                    .withExposedPorts(9081, 9444)
+                    .withReadinessPath("/health");
+    
+    @Inject
+    public static BrewsResource brews;
+
+    @Test
+    public void testService() throws Exception {
+        CoffeeBrew brew = new CoffeeBrew();
+        brew.setType(CoffeeType.POUR_OVER);
+        Response response = brews.startCoffeeBrew(brew);
+
+        try {
+            if (response == null) {
+                assertNotNull("GreetingService response must not be NULL", response);
+            } else {
+                assertEquals("Response must be 200 OK", 200, response.getStatus());
+            }
+        } finally {
+            response.close();
+        }
+    }
+}
+```
+
+You'll see that the class is marked as a MicroShed test with the `@MicroShedTest` annotation.
+
+The test also contains the following Container configuration:
+
+```Java
+    @Container
+    public static MicroProfileApplication app = new MicroProfileApplication()
+                    .withAppContextRoot("/barista")
+                    .withExposedPorts(9081, 9444)
+                    .withReadinessPath("/health");
+```
+
+
+You'll see that the unit test is like any other.
+
+We need to configure `log4j` in order to see the detailed progress of the MicroShed test.  In the directory `start/barista/src/test/resources/` create the file `log4j.properties` and add the following configuration to it:
+
+```properties
+log4j.rootLogger=INFO, stdout
+
+log4j.appender=org.apache.log4j.ConsoleAppender
+log4j.appender.layout=org.apache.log4j.PatternLayout
+
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern=%r %p %c %x - %m%n
+
+log4j.logger.org.microshed=DEBUG
+```
+
+Build and run the test:
+
+```
+mvn install
+```
+
+You should see the following output:
+
+```
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.sebastian_daschner.barista.it.BaristaContainerIT
+0 INFO org.microshed.testing.jupiter.MicroShedTestExtension  - Using ApplicationEnvironment class: org.microshed.testing.testcontainers.config.HollowTestcontainersConfiguration
+70 INFO org.testcontainers.dockerclient.DockerClientProviderStrategy  - Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+710 INFO org.testcontainers.dockerclient.UnixSocketClientProviderStrategy  - Accessing docker with local Unix socket
+710 INFO org.testcontainers.dockerclient.DockerClientProviderStrategy  - Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+868 INFO org.testcontainers.DockerClientFactory  - Docker host IP address is localhost
+914 INFO org.testcontainers.DockerClientFactory  - Connected to docker: 
+  Server Version: 19.03.1
+  API Version: 1.40
+  Operating System: Docker Desktop
+  Total Memory: 1998 MB
+1638 INFO org.testcontainers.utility.RegistryAuthLocator  - Credential helper/store (docker-credential-desktop) does not have credentials for quay.io
+2627 INFO org.testcontainers.DockerClientFactory  - Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+        ℹ︎ Checking the system...
+        ✔ Docker version should be at least 1.6.0
+        ✔ Docker environment should have more than 2GB free disk space
+2827 INFO org.microshed.testing.testcontainers.MicroProfileApplication  - Discovered ServerAdapter: class org.testcontainers.containers.liberty.LibertyAdapter
+2828 INFO org.microshed.testing.testcontainers.MicroProfileApplication  - Using ServerAdapter: org.testcontainers.containers.liberty.LibertyAdapter
+2834 DEBUG org.microshed.testing.testcontainers.config.TestcontainersConfiguration  - No networks explicitly defined. Using shared network for all containers in class com.sebastian_daschner.barista.it.BaristaContainerIT
+2842 INFO org.microshed.testing.testcontainers.config.HollowTestcontainersConfiguration  - exposing port: 9081 for container alpine:3.5
+2843 INFO org.microshed.testing.testcontainers.config.HollowTestcontainersConfiguration  - exposing port: 9444 for container alpine:3.5
+2844 INFO org.microshed.testing.testcontainers.config.TestcontainersConfiguration  - Starting containers in parallel for class com.sebastian_daschner.barista.it.BaristaContainerIT
+2845 INFO org.microshed.testing.testcontainers.config.TestcontainersConfiguration  -   java.util.concurrent.CompletableFuture@465232e9[Completed normally]
+2848 INFO org.microshed.testing.testcontainers.config.TestcontainersConfiguration  - All containers started in 3ms
+2868 DEBUG org.microshed.testing.jaxrs.RestClientBuilder  - no classes implementing Application found in pkg: com.sebastian_daschner.barista.boundary
+2868 DEBUG org.microshed.testing.jaxrs.RestClientBuilder  - checking in pkg: com.sebastian_daschner.barista
+2873 DEBUG org.microshed.testing.jaxrs.RestClientBuilder  - Using ApplicationPath of 'resources'
+2874 INFO org.microshed.testing.jaxrs.RestClientBuilder  - Building rest client for class com.sebastian_daschner.barista.boundary.BrewsResource with base path: http://localhost:9081/barista/resources and providers: [class org.microshed.testing.jaxrs.JsonBProvider]
+3273 DEBUG org.microshed.testing.jupiter.MicroShedTestExtension  - Injecting rest client for public static com.sebastian_daschner.barista.boundary.BrewsResource com.sebastian_daschner.barista.it.BaristaContainerIT.brews
+3419 INFO org.microshed.testing.jaxrs.JsonBProvider  - Sending data to server: {"type":"POUR_OVER"}
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.93 s - in com.sebastian_daschner.barista.it.BaristaContainerIT
+[INFO] Running com.sebastian_daschner.barista.it.BaristaIT
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.271 s - in com.sebastian_daschner.barista.it.BaristaIT
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+```
+
+## Module 9: Support Licensing
+
+Open Liberty is Open Source under the Eclipse Public License v1, as a result there is no fee to use in production.  Community support is available via StackOverflow, Gitter, or the mail list, and bugs can be raised in github (https://github.com/openliberty/open-liberty).  Commercial support from IBM is available for Open Liberty, you can find out more on the IBM Marketplace. The WebSphere Liberty product is built on Open Liberty, there is no migration required to use WebSphere Liberty, you simply point to WebSphere Liberty in your build.  Users of WebSphere Liberty get support for the packaged Open Liberty function.
 
 WebSphere Liberty is also available in Maven Central - see https://search.maven.org/search?q=g:com.ibm.websphere.appserver.runtime
 
@@ -803,7 +992,7 @@ Try the service out using the Open API Web page and you should see the behavior 
 
 ## Conclusion
 
-Thanks for trying the Open Liberty Materclass. If you're interested in finding out more, please visit http://openliberty.io, and for more hands-on esperience, why not try the Open Liberty Guides - http://openliberty.io/guides.
+Thanks for trying the Open Liberty Masterclass. If you're interested in finding out more, please visit http://openliberty.io, and for more hands-on experience, why not try the Open Liberty Guides - http://openliberty.io/guides.
 
 
 
