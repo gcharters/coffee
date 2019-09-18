@@ -39,10 +39,13 @@ This document contains the hands-on lab modules for the Open Liberty Masterclass
 If you will be taking the Masterclass at a location with limited network bandwidth, it is recommended you do the following beforehand in order to populate your local .m2 repo and Docker cache.
 
 ```
-git clone https://github.com/gcharters/coffee.git
-cd open-liberty-masterclass/start/coffee-shop
+git clone https://github.com/gcharters/open-liberty-masterclass.git
+cd open-liberty-masterclass/finish/coffee-shop
 mvn install
 docker build -t masterclass:coffee-shop .
+cd ../barista
+mvn install
+docker build -t masterclass:barista .
 ```
 ## The Application
 
