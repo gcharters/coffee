@@ -149,7 +149,7 @@ Add the following dependency to the `coffee-shop/pom.xml`
 ```XML
         <dependency>
             <groupId>io.openliberty.features</groupId>
-            <artifactId>mpOpenAPI-1.0</artifactId>
+            <artifactId>mpOpenAPI-1.1</artifactId>
             <type>esa</type>
             <scope>provided</scope>
         </dependency> 
@@ -170,14 +170,14 @@ Near the top of the file, you'll see the following `<featureManager/>` entry:
         <feature>beanValidation-2.0</feature>
         <feature>mpHealth-2.0</feature>
         <feature>mpConfig-1.3</feature>
-        <feature>mpRestClient-1.1</feature>
+        <feature>mpRestClient-1.3</feature>
         <feature>jsonp-1.1</feature>
     </featureManager>
 ```
 This entry lists all the features to be loaded by the server.  Add the following entry inside the `<featureManager/>` element:
 
 ```XML
-        <feature>mpOpenAPI-1.0</feature>
+        <feature>mpOpenAPI-1.1</feature>
 ```
 
 Build and run the coffee-shop service:
@@ -198,15 +198,15 @@ Open Liberty has support for many standard APIs out of the box, including all th
 
 As we've seen, to use a new feature, we need to add them to the build.  There is no need to add a dependency on the APIs for the feature because each feature depends on the APIs.  That means during build, the API dependencies are automatically added from maven central.
 
-For example, take a look at: https://search.maven.org/artifact/io.openliberty.features/mpMetrics-1.1/18.0.0.4/esa
+For example, take a look at: https://search.maven.org/artifact/io.openliberty.features/mpMetrics-2.0/19.0.0.8/esa
 
 You'll see in the XML on the left that this feature depends on:
 
 ```XML
     <dependency>
       <groupId>io.openliberty.features</groupId>
-      <artifactId>com.ibm.websphere.appserver.org.eclipse.microprofile.metrics-1.1</artifactId>
-      <version>18.0.0.4</version>
+      <artifactId>com.ibm.websphere.appserver.org.eclipse.microprofile.metrics-2.0</artifactId>
+      <version>19.0.0.8</version>
       <type>esa</type>
     </dependency>
 ```
@@ -216,7 +216,7 @@ Which depends on the Metrics API from Eclipse MicroProfile:
     <dependency>
       <groupId>org.eclipse.microprofile.metrics</groupId>
       <artifactId>microprofile-metrics-api</artifactId>
-      <version>1.1.1</version>
+      <version>2.0.0</version>
     </dependency>
 ```
 
@@ -227,9 +227,8 @@ We're now going to add Metrics to the `coffee-shop`.  Edit the `open-liberty-mas
 ```XML
         <dependency>
             <groupId>io.openliberty.features</groupId>
-            <artifactId>mpMetrics-1.1</artifactId>
+            <artifactId>mpMetrics-2.0</artifactId>
             <type>esa</type>
-            <scope>provided</scope>
         </dependency>
 ```
 
@@ -239,17 +238,16 @@ Build the project:
 mvn install
 ```
 
-You should see that during the build, the following features are installed, and include mpMetrics-1.1:
+You should see that during the build, the following features are installed, and include mpMetrics-2.0:
 
 ```
-[INFO] The following features have been installed: mpConfig-1.3 jndi-1.0 ejbLite-3.2 el-3.0 beanValidation-2.0 cdi-2.0 servlet-3.1 json-1.0 cdi-1.2 mpHealth-2.0 jaxrsClient-2.0 jsonp-1.0 mpRestClient-1.1 jsonp-1.1 servlet-4.0 jaxrsClient-2.1 jaxrs-2.1 ssl-1.0 distributedMap-1.0 mpConfig-1.2 mpMetrics-1.1 jaxrs-2.0 mpOpenAPI-1.0 appSecurity-2.0 
-
+[INFO] [AUDIT   ] CWWKF0012I: The server installed the following features: [beanValidation-2.0, cdi-2.0, distributedMap-1.0, ejbLite-3.2, el-3.0, jaxrs-2.1, jaxrsClient-2.1, jndi-1.0, json-1.0, jsonp-1.1, mpConfig-1.3, mpHealth-2.0, mpMetrics-2.0, mpOpenAPI-1.1, mpRestClient-1.3, servlet-4.0, ssl-1.0].
 ```
 Now we have the API available, we can update the application to include a metric which will count the number of times a coffee order is requested. In the file `open-liberty-masterclass/start/coffee-shop/src/main/java/com/sebastian_daschner/coffee_shop/boundary/OrdersResource.java`, add the following `@Counted` annotation to the `orderCoffee` method:
 
 ```Java
     @POST
-    @Counted(name="order", displayName="Order count", description="Number of times orders requested.", monotonic=true)
+    @Counted(name="order", displayName="Order count", description="Number of times orders requested.")
     public Response orderCoffee(@Valid @NotNull CoffeeOrder order) {
         ...
     }
@@ -269,7 +267,7 @@ mvn install
 
 ## Module 4: Server Configuration
 
-In the previous module you added the `mpMetrics-1.1` feature to the Liberty build.  This makes the feature available for use by the Liberty runtime, but as we saw with the `mpOpenAPI` feature loading the feature at runtime is a separate explicit choice.
+In the previous module you added the `mpMetrics-2.0` feature to the Liberty build.  This makes the feature available for use by the Liberty runtime, but as we saw with the `mpOpenAPI` feature loading the feature at runtime is a separate explicit choice.
 
 Open the file `open-liberty-masterclass/start/coffee-shop/src/main/liberty/config/server.xml`
 
@@ -281,18 +279,18 @@ Near the top of the file, you'll see the following `<featureManager/>` entry:
         <feature>ejbLite-3.2</feature>
         <feature>cdi-2.0</feature>
         <feature>beanValidation-2.0</feature>
-        <feature>mpHealth-1.0</feature>
+        <feature>mpHealth-2.0</feature>
         <feature>mpConfig-1.3</feature>
-        <feature>mpRestClient-1.1</feature>
+        <feature>mpRestClient-1.3</feature>
         <feature>jsonp-1.1</feature>
-        <feature>mpOpenAPI-1.0</feature>
+        <feature>mpOpenAPI-2.0</feature>
     </featureManager>
 ```
 
-Add the following inside the `<featureManager/>` element to include the `mpMetrics-1.1` feature:
+Add the following inside the `<featureManager/>` element to include the `mpMetrics-2.0` feature:
 
 ```XML
-        <feature>mpMetrics-1.1</feature>
+        <feature>mpMetrics-2.0</feature>
 ```
 
 In the `open-liberty-masterclass/start/coffee-shop` directory, build the updated application and start the server:
@@ -659,13 +657,13 @@ This Dockerfile uses Docker build stages.  The first stage gets all the applicat
 
 The `FROM` statement is building this image using the Open Liberty kernel image (see https://hub.docker.com/_/open-liberty/ for the available images).  The second `RUN` removes the `bootstrap.properties` file to avoid accidentally using it and avoid conflicts with the environment variables we will pass in later through Docker.  The `EXPOSE` makes the two server ports available outside the container.
 
-Let's build the docker image.  In the `open-liberty-masterclass/start/coffee-shop` directory, run:
+Let's build the docker image.  In the `open-liberty-masterclass/start/coffee-shop` directory, run (note the period (`.`) at the end of the line is important):
 
 ```
 docker build -t masterclass:coffee-shop .
 ```
 
-In the `open-liberty-masterclass/start/barista` directory, run:
+In the `open-liberty-masterclass/start/barista` directory, run (note the period (`.`) at the end of the line is important):
 
 ```
 docker build -t masterclass:barista .
@@ -755,7 +753,7 @@ Take a look at the file `open-liberty-masterclass/start/coffee-shop/configDropin
 <server description="Coffee Shop Server">
 
     <featureManager>
-        <feature>mpMetrics-1.1</feature>
+        <feature>mpMetrics-2.0</feature>
     </featureManager>
     
     <mpMetrics authentication="true" />

@@ -57,7 +57,7 @@ public class OrdersResource {
     }
 
     @POST
-    @Counted(name="order", displayName="Order count", description="Number of times orders requested.", monotonic=true)
+    @Counted(name="order", displayName="Order count", description="Number of times orders requested.")
     public Response orderCoffee(@Valid @NotNull CoffeeOrder order) {
         final CoffeeOrder storedOrder = coffeeShop.orderCoffee(order);
         return Response.created(buildUri(storedOrder)).build();

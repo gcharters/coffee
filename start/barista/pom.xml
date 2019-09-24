@@ -46,19 +46,16 @@
             <groupId>io.openliberty.features</groupId>
             <artifactId>jaxrs-2.1</artifactId>
             <type>esa</type>
-            <scope>provided</scope>
         </dependency>  
         <dependency>
             <groupId>io.openliberty.features</groupId>
-            <artifactId>mpOpenAPI-1.0</artifactId>
+            <artifactId>mpOpenAPI-1.1</artifactId>
             <type>esa</type>
-            <scope>provided</scope>
         </dependency>   
         <dependency>
             <groupId>io.openliberty.features</groupId>
             <artifactId>mpHealth-2.0</artifactId>
             <type>esa</type>
-            <scope>provided</scope>
         </dependency>  
     </dependencies>
 
